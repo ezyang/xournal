@@ -294,6 +294,12 @@ void continue_stroke(GdkEvent *event)
 
 void finalize_stroke(void)
 {
+  if (ui.cur_layer == NULL) {
+    // someone swapped out the layers while we weren't looking,
+    // ignore the stroke
+    return;
+  }
+
   if (ui.cur_path.num_points == 1) { // GnomeCanvas doesn't like num_points=1
     ui.cur_path.coords[2] = ui.cur_path.coords[0]+0.1;
     ui.cur_path.coords[3] = ui.cur_path.coords[1];
