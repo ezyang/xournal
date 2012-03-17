@@ -3683,6 +3683,13 @@ on_optionsButtonsSwitchMappings_activate(GtkMenuItem    *menuitem,
 }
 
 
+void
+on_optionsPasteInPlace_activate           (GtkCheckMenuItem *checkmenuitem,
+                                        gpointer         user_data)
+{
+  ui.paste_in_place = gtk_check_menu_item_get_active(checkmenuitem);
+}
+
 
 void
 on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,

@@ -288,6 +288,7 @@ typedef struct UIData {
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
   GdkCursor *cursor;
+  gboolean paste_in_place; // do not paste at cursor, paste at same pixel location
   GdkPixbuf *pen_cursor_pix, *hiliter_cursor_pix;
   gboolean pen_cursor; // use pencil cursor (default is a dot in current color)
   gboolean progressive_bg; // update PDF bg's one at a time
