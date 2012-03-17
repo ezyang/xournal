@@ -1543,6 +1543,7 @@ void init_config_default(void)
   
   ui.hiliter_opacity = 0.5;
   ui.pen_cursor = FALSE;
+  ui.paste_in_place = FALSE;
   
 #if GTK_CHECK_VERSION(2,10,0)
   ui.print_settings = NULL;
@@ -1720,6 +1721,9 @@ void save_config_to_file(void)
   update_keyval("tools", "pen_cursor",
     _(" Use the pencil from cursor theme instead of a color dot (true/false)"),
     g_strdup(ui.pen_cursor?"true":"false"));
+  update_keyval("tools", "paste_in_place",
+    _(" Paste into same location as original element, rather than offset from cursor"),
+    g_strdup(ui.paste_in_place?"true":"false"));
   update_keyval("tools", "pen_color",
     _(" default pen color"),
     (ui.default_brushes[TOOL_PEN].color_no>=0)?
@@ -2065,6 +2069,7 @@ void load_config_from_file(void)
 
   parse_keyval_enum("tools", "startup_tool", &ui.startuptool, tool_names, NUM_TOOLS);
   ui.toolno[0] = ui.startuptool;
+  parse_keyval_boolean("tools", "paste_in_place", &ui.paste_in_place);
   parse_keyval_boolean("tools", "pen_cursor", &ui.pen_cursor);
   parse_keyval_enum_color("tools", "pen_color", 
      &(ui.brushes[0][TOOL_PEN].color_no), &(ui.brushes[0][TOOL_PEN].color_rgba),

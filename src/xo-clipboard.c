@@ -225,8 +225,15 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
     cy = ui.cur_page->height - (ui.selection->bbox.bottom-ui.selection->bbox.top)/2;
   if (cy - (ui.selection->bbox.bottom-ui.selection->bbox.top)/2 < 0)
     cy = (ui.selection->bbox.bottom-ui.selection->bbox.top)/2;
-  hoffset = cx - (ui.selection->bbox.right+ui.selection->bbox.left)/2;
-  voffset = cy - (ui.selection->bbox.top+ui.selection->bbox.bottom)/2;
+
+  if (ui.paste_in_place) {
+    hoffset = 0;
+    voffset = 0;
+  } else {
+    hoffset = cx - (ui.selection->bbox.right+ui.selection->bbox.left)/2;
+    voffset = cy - (ui.selection->bbox.top+ui.selection->bbox.bottom)/2;
+  }
+
   ui.selection->bbox.left += hoffset;
   ui.selection->bbox.right += hoffset;
   ui.selection->bbox.top += voffset;
