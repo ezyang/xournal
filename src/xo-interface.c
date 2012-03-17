@@ -259,6 +259,7 @@ create_winMain (void)
   GtkWidget *optionsAutosaveXoj;
   GtkWidget *optionsLeftHanded;
   GtkWidget *optionsShortenMenus;
+  GtkWidget *optionsPasteInPlace;
   GtkWidget *optionsPenCursor;
   GtkWidget *separator21;
   GtkWidget *optionsAutoSavePrefs;
@@ -1449,6 +1450,10 @@ create_winMain (void)
   gtk_widget_show (optionsShortenMenus);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsShortenMenus);
 
+  optionsPasteInPlace = gtk_check_menu_item_new_with_mnemonic (_("Paste in Place"));
+  gtk_widget_show (optionsPasteInPlace);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPasteInPlace);
+
   optionsPenCursor = gtk_check_menu_item_new_with_mnemonic (_("Pencil Cursor"));
   gtk_widget_show (optionsPenCursor);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPenCursor);
@@ -2465,6 +2470,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsShortenMenus, "toggled",
                     G_CALLBACK (on_optionsShortenMenus_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsPasteInPlace, "toggled",
+                    G_CALLBACK (on_optionsPasteInPlace_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsPenCursor, "toggled",
                     G_CALLBACK (on_optionsPenCursor_activate),
                     NULL);
@@ -2846,6 +2854,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, optionsAutosaveXoj, "optionsAutosaveXoj");
   GLADE_HOOKUP_OBJECT (winMain, optionsLeftHanded, "optionsLeftHanded");
   GLADE_HOOKUP_OBJECT (winMain, optionsShortenMenus, "optionsShortenMenus");
+  GLADE_HOOKUP_OBJECT (winMain, optionsPasteInPlace, "optionsPasteInPlace");
   GLADE_HOOKUP_OBJECT (winMain, optionsPenCursor, "optionsPenCursor");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");
   GLADE_HOOKUP_OBJECT (winMain, optionsAutoSavePrefs, "optionsAutoSavePrefs");
