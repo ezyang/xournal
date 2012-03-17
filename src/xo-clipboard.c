@@ -227,6 +227,11 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
     cy = (ui.selection->bbox.bottom-ui.selection->bbox.top)/2;
   hoffset = cx - (ui.selection->bbox.right+ui.selection->bbox.left)/2;
   voffset = cy - (ui.selection->bbox.top+ui.selection->bbox.bottom)/2;
+
+  // disable translation to make it easier to make build slides
+  hoffset = 0;
+  voffset = 0;
+
   ui.selection->bbox.left += hoffset;
   ui.selection->bbox.right += hoffset;
   ui.selection->bbox.top += voffset;
