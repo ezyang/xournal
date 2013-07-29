@@ -1,8 +1,13 @@
 ## Process this file with automake to produce Makefile.in
 
 SUBDIRS = src po
+ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = \
+INTLTOOL_FILES = intltool-extract.in \
+                 intltool-merge.in \
+                 intltool-update.in
+
+EXTRA_DIST = $(INTLTOOL_FILES) \
 	autogen.sh \
 	xournal.glade xournal.gladep \
 	xournal.xml x-xoj.desktop xournal.desktop
