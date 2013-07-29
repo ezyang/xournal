@@ -6,10 +6,9 @@ else
   SUBDIRS = ttsubset
 endif
 
-INCLUDES = \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	@PACKAGE_CFLAGS@
+AM_CPPFLAGS = -DPACKAGE_DATA_DIR=\"${datadir}\" \
+              -DPACKAGE_LOCALE_DIR=\"${XOURNAL_LOCALEDIR}\" \
+              @PACKAGE_CFLAGS@
 
 bin_PROGRAMS = xournal
 
