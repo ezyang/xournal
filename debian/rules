@@ -75,7 +75,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installchangelogs ChangeLog
 	dh_installdocs
-	dh_installman debian/xournal.1
+#	dh_installman debian/xournal.1
 	dh_installmenu
 	dh_link
 	dh_strip
