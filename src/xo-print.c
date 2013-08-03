@@ -819,7 +819,7 @@ gboolean pdf_draw_image(PdfImage *image, struct XrefTable *xref, GString *pdfbuf
 
   xref->data[image->n_obj] = pdfbuf->len;
   g_string_append_printf(pdfbuf, 
-    "%d 0 obj\n<< /Length %d /Filter /FlateDecode /Type /Xobject "
+    "%d 0 obj\n<< /Length %" G_GSIZE_FORMAT " /Filter /FlateDecode /Type /Xobject "
     "/Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB "
     "/BitsPerComponent 8 ",
     image->n_obj, zpix->len, width, height);
@@ -848,7 +848,7 @@ gboolean pdf_draw_image(PdfImage *image, struct XrefTable *xref, GString *pdfbuf
     
     xref->data[image->n_obj_smask] = pdfbuf->len;
     g_string_append_printf(pdfbuf, 
-      "%d 0 obj\n<< /Length %d /Filter /FlateDecode /Type /Xobject "
+      "%d 0 obj\n<< /Length %" G_GSIZE_FORMAT " /Filter /FlateDecode /Type /Xobject "
       "/Subtype /Image /Width %d /Height %d /ColorSpace /DeviceGray "
       "/BitsPerComponent 8 >> stream\n",
       image->n_obj_smask, zpix->len, width, height);
