@@ -1,3 +1,47 @@
+xournal (4.8~ezyang20140927) unstable; urgency=low
+
+  * Convert tabs into spaces to avoid problems with some PDF renderers
+    (primarily GhostScript).
+  * Add XOURNAL_DISABLE_GS variable to turn off piping to GhostScript.
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Sat, 27 Sep 2014 03:05:05 -0700
+
+xournal (4.8~ezyang20140925) unstable; urgency=low
+
+  * Pipe PDF export to GhostScript to ensure fonts are properlly embedded.
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 25 Sep 2014 23:59:44 -0700
+
+xournal (4.8~ezyang20131023) unstable; urgency=low
+
+  * Fix a bug in PDF export of box fill
+  * Modify behavior of selected boxes to change color along with stroke
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Wed, 23 Oct 2013 16:14:33 -0700
+
+xournal (4.8~ezyang20130912-2) unstable; urgency=low
+
+  * Fix keyboard shortcut bug for box fill
+  * Add keyboard shortcuts for layer manipulation
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 12 Sep 2013 02:08:05 -0700
+
+xournal (4.8~ezyang20130912-1) unstable; urgency=low
+
+  * New feature: box fill (produces new file format)
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 12 Sep 2013 01:12:50 -0700
+
+xournal (4.8~ezyang20130803-1) unstable; urgency=low
+  * Development snapshot of Xournal trunk:
+        - Added pencil cursor tool
+        - Now ignores events from non-drawing devices by default
+        - Fix some Windows bugs related to image support
+  * "Paste in Place" option for slide-building
+  * Miscellaneous stability fixes
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Sat, 03 Aug 2013 15:34:33 -0700
+
 xournal (0.4.7) unstable; urgency=low
   * New upstream release:
   - insert image tool (based on patches by Victor Saase and Simon Guest)
