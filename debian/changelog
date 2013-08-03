@@ -1,3 +1,13 @@
+xournal (4.8~ezyang20130803-1) unstable; urgency=low
+  * Development snapshot of Xournal trunk:
+        - Added pencil cursor tool
+        - Now ignores events from non-drawing devices by default
+        - Fix some Windows bugs related to image support
+  * "Paste in Place" option for slide-building
+  * Miscellaneous stability fixes
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Sat, 03 Aug 2013 15:34:33 -0700
+
 xournal (0.4.7) unstable; urgency=low
   * New upstream release:
   - insert image tool (based on patches by Victor Saase and Simon Guest)
