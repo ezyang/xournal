@@ -1,3 +1,9 @@
+xournal (4.8~ezyang20130912) unstable; urgency=low
+
+  * New feature: box fill (produces new file format)
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 12 Sep 2013 01:12:50 -0700
+
 xournal (4.8~ezyang20130803) unstable; urgency=low
   * Development snapshot of Xournal trunk:
         - Added pencil cursor tool
