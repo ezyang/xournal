@@ -135,7 +135,7 @@ void update_cursor(void)
   else if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     ui.cursor = make_hiliter_cursor(ui.cur_brush->color_rgba);
   }
-  else if (ui.cur_item_type == ITEM_SELECTRECT) {
+  else if (ui.cur_item_type == ITEM_SELECTRECT || ui.cur_item_type == ITEM_BOXFILL) {
     ui.cursor = gdk_cursor_new(GDK_TCROSS);
   }
   else if (ui.toolno[ui.cur_mapping] == TOOL_HAND) {
@@ -338,6 +338,46 @@ void finalize_stroke(void)
   ui.cur_layer->nitems++;
   ui.cur_item = NULL;
   ui.cur_item_type = ITEM_NONE;
+}
+
+/************** box fill *************/
+
+void start_boxfill(GdkEvent *event)
+{
+  double pt[2];
+  ui.cur_item_type = ITEM_BOXFILL;
+  ui.cur_item = g_new(struct Item, 1);
+  ui.cur_item->type = ITEM_BOXFILL;
+  g_memmove(&(ui.cur_item->brush), ui.cur_brush, sizeof(struct Brush));
+  // get cursor?
+  get_pointer_coords(event, pt);
+  ui.cur_item->bbox.left = ui.cur_item->bbox.right = pt[0];
+  ui.cur_item->bbox.top = ui.cur_item->bbox.bottom = pt[1];
+
+  ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
+    gnome_canvas_rect_get_type(),
+    "x1", pt[0], "y1", pt[1],
+    "x2", pt[0], "y2", pt[1],
+    "fill-color-rgba", ui.cur_item->brush.color_rgba,
+    NULL);
+  update_cursor();
+}
+
+void finalize_boxfill(void)
+{
+  // add undo information
+  prepare_new_undo();
+  undo->type = ITEM_BOXFILL;
+  undo->item = ui.cur_item;
+  undo->layer = ui.cur_layer;
+
+  // store the item on top of the layer stack
+  ui.cur_layer->items = g_list_append(ui.cur_layer->items, ui.cur_item);
+  ui.cur_layer->nitems++;
+  ui.cur_item = NULL;
+  ui.cur_item_type = ITEM_NONE;
+
+  update_cursor();
 }
 
 /************** eraser tool *************/
@@ -723,7 +763,7 @@ struct Item *click_is_in_text(struct Layer *layer, double x, double y)
   return val;
 }
 
-struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y)
+struct Item *click_should_select(struct Layer *layer, double x, double y)
 {
   GList *itemlist;
   struct Item *item, *val;
@@ -731,7 +771,7 @@ struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y)
   val = NULL;
   for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
-    if (item->type != ITEM_TEXT && item->type != ITEM_IMAGE) continue;
+    if (item->type != ITEM_TEXT && item->type != ITEM_IMAGE && item->type != ITEM_BOXFILL) continue;
     if (x<item->bbox.left || x>item->bbox.right) continue;
     if (y<item->bbox.top || y>item->bbox.bottom) continue;
     val = item;
