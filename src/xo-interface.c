@@ -674,6 +674,9 @@ create_winMain (void)
   viewShowLayer = gtk_image_menu_item_new_with_mnemonic (_("_Show Layer"));
   gtk_widget_show (viewShowLayer);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewShowLayer);
+  gtk_widget_add_accelerator (viewShowLayer, "activate", accel_group,
+                              GDK_Page_Up, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
 
   image630 = gtk_image_new_from_stock ("gtk-add", GTK_ICON_SIZE_MENU);
   gtk_widget_show (image630);
@@ -682,6 +685,9 @@ create_winMain (void)
   viewHideLayer = gtk_image_menu_item_new_with_mnemonic (_("_Hide Layer"));
   gtk_widget_show (viewHideLayer);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewHideLayer);
+  gtk_widget_add_accelerator (viewHideLayer, "activate", accel_group,
+                              GDK_Page_Down, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
 
   image631 = gtk_image_new_from_stock ("gtk-remove", GTK_ICON_SIZE_MENU);
   gtk_widget_show (image631);
@@ -722,6 +728,9 @@ create_winMain (void)
   journalNewLayer = gtk_menu_item_new_with_mnemonic (_("_New Layer"));
   gtk_widget_show (journalNewLayer);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalNewLayer);
+  gtk_widget_add_accelerator (journalNewLayer, "activate", accel_group,
+                              GDK_N, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
 
   journalDeleteLayer = gtk_menu_item_new_with_mnemonic (_("Delete La_yer"));
   gtk_widget_show (journalDeleteLayer);
