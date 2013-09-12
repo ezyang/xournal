@@ -122,6 +122,10 @@ void selection_to_clip(void)
         + sizeof(struct BBox)
         + sizeof(gsize) // png_buflen
         + item->image_png_len;
+    } else if (item->type == ITEM_BOXFILL) {
+      bufsz+= sizeof(int) // type
+        + sizeof(struct BBox)
+        + sizeof(struct Brush); // brush
     }
     else bufsz+= sizeof(int); // type
   }
@@ -171,6 +175,10 @@ void selection_to_clip(void)
         g_memmove(p, item->image_png, item->image_png_len); p+= item->image_png_len;
       }
       if (nitems==1) sel->image_data = gdk_pixbuf_copy(item->image); // single image
+    }
+    if (item->type == ITEM_BOXFILL) {
+      g_memmove(p, &item->bbox, sizeof(struct BBox)); p+= sizeof(struct BBox);
+      g_memmove(p, &item->brush, sizeof(struct Brush)); p+= sizeof(struct Brush);
     }
   }
   
@@ -303,6 +311,15 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
       } else {
         item->image = NULL;
       }
+      make_canvas_item_one(ui.cur_layer->group, item);
+    }
+    if (item->type == ITEM_BOXFILL) {
+      g_memmove(&item->bbox, p, sizeof(struct BBox)); p+= sizeof(struct BBox);
+      item->bbox.left += hoffset;
+      item->bbox.right += hoffset;
+      item->bbox.top += voffset;
+      item->bbox.bottom += voffset;
+      g_memmove(&item->brush, p, sizeof(struct Brush)); p+= sizeof(struct Brush);
       make_canvas_item_one(ui.cur_layer->group, item);
     }
   }
