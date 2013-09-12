@@ -103,8 +103,8 @@ void finalize_selectrect(void)
   
   if (ui.selection->items == NULL) {
     // if we clicked inside a text zone or image?  
-    item = click_is_in_text_or_image(ui.selection->layer, x1, y1);
-    if (item!=NULL && item==click_is_in_text_or_image(ui.selection->layer, x2, y2)) {
+    item = click_should_select(ui.selection->layer, x1, y1);
+    if (item!=NULL && item==click_should_select(ui.selection->layer, x2, y2)) {
       ui.selection->items = g_list_append(ui.selection->items, item);
       g_memmove(&(ui.selection->bbox), &(item->bbox), sizeof(struct BBox));
       gnome_canvas_item_set(ui.selection->canvas_item,
@@ -245,7 +245,7 @@ void finalize_selectregion(void)
   if (ui.selection->items == NULL) {
     // if we clicked inside a text zone or image?
     pt = ui.cur_path.coords; 
-    item = click_is_in_text_or_image(ui.selection->layer, pt[0], pt[1]);
+    item = click_should_select(ui.selection->layer, pt[0], pt[1]);
     if (item!=NULL) {
       for (i=0; i<n; i++, pt+=2) {
         if (pt[0]<item->bbox.left || pt[0]>item->bbox.right || pt[1]<item->bbox.top || pt[1]>item->bbox.bottom)
@@ -653,7 +653,8 @@ void recolor_selection(int color_no, guint color_rgba)
   undo->auxlist = NULL;
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
-    if (item->type != ITEM_STROKE && item->type != ITEM_TEXT) continue;
+    // ToDo: maybe this is all colorable elements, sans highlight
+    if (item->type != ITEM_STROKE && item->type != ITEM_TEXT && item->type != ITEM_BOXFILL) continue;
     if (item->type == ITEM_STROKE && item->brush.tool_type!=TOOL_PEN) continue;
     // store info for undo
     undo->itemlist = g_list_append(undo->itemlist, item);

@@ -288,6 +288,16 @@ gboolean save_journal(const char *filename, gboolean is_auto)
           if (!write_image(f, item)) success = FALSE;
           gzprintf(f, "</image>\n");
         }
+        if (item->type == ITEM_BOXFILL) {
+          gzprintf(f, "<boxfill color=\"");
+          if (item->brush.color_no >= 0)
+            gzputs(f, color_names[item->brush.color_no]);
+          else
+            gzprintf(f, "#%08x", item->brush.color_rgba);
+          gzprintf(f, "\" left=\"%.2f\" top=\"%.2f\" right=\"%.2f\" bottom=\"%.2f\">\n",
+            item->bbox.left, item->bbox.top, item->bbox.right, item->bbox.bottom);
+          gzprintf(f, "</boxfill>\n");
+        }
       }
       gzprintf(f, "</layer>\n");
     }
@@ -713,6 +723,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
       return;
     }
     tmpItem = (struct Item *)g_malloc(sizeof(struct Item));
+    // TODO: sanity mode should memset this malloc
     tmpItem->type = ITEM_STROKE;
     tmpItem->path = NULL;
     tmpItem->canvas_item = NULL;
@@ -892,6 +903,67 @@ void xoj_parser_start_element(GMarkupParseContext *context,
       attribute_values++;
     }
     if (has_attr!=15) *error = xoj_invalid();
+  } else if (!strcmp(element_name, "boxfill")) { // start of a box fill item
+    if (tmpLayer == NULL || tmpItem != NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = (struct Item *)g_malloc0(sizeof(struct Item));
+    tmpItem->type = ITEM_BOXFILL;
+    tmpItem->canvas_item = NULL;
+    tmpLayer->items = g_list_append(tmpLayer->items, tmpItem);
+    tmpLayer->nitems++;
+    // scan for x, y
+    has_attr = 0;
+    while (*attribute_names!=NULL) {
+      if (!strcmp(*attribute_names, "left")) {
+        if (has_attr & 1) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.left = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 1;
+      }
+      else if (!strcmp(*attribute_names, "top")) {
+        if (has_attr & 2) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.top = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 2;
+      }
+      else if (!strcmp(*attribute_names, "right")) {
+        if (has_attr & 4) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.right = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 4;
+      }
+      else if (!strcmp(*attribute_names, "bottom")) {
+        if (has_attr & 8) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.bottom = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 8;
+      } else if (!strcmp(*attribute_names, "color")) {
+        // XXX duplicated with brush
+        if (has_attr & 16) *error = xoj_invalid();
+        tmpItem->brush.color_no = COLOR_OTHER;
+        for (i=0; i<COLOR_MAX; i++)
+          if (!strcmp(*attribute_values, color_names[i])) {
+            tmpItem->brush.color_no = i;
+            tmpItem->brush.color_rgba = predef_colors_rgba[i];
+          }
+        if (tmpItem->brush.color_no == COLOR_OTHER && **attribute_values == '#') {
+          tmpItem->brush.color_rgba = strtoul(*attribute_values + 1, &ptr, 16);
+          if (*ptr!=0) *error = xoj_invalid();
+        }
+        has_attr |= 16;
+      }
+
+      else *error = xoj_invalid();
+      attribute_names++;
+      attribute_values++;
+    }
+    if (has_attr!=31) *error = xoj_invalid();
   }
 }
 
@@ -929,6 +1001,13 @@ void xoj_parser_end_element(GMarkupParseContext *context,
     tmpItem = NULL;
   }
   if (!strcmp(element_name, "image")) {
+    if (tmpItem == NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = NULL;
+  }
+  if (!strcmp(element_name, "boxfill")) {
     if (tmpItem == NULL) {
       *error = xoj_invalid();
       return;

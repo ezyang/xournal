@@ -1289,6 +1289,19 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
            item->bbox.right-item->bbox.left, item->bbox.top-item->bbox.bottom, item->bbox.bottom-item->bbox.top, // scaling
            cur_image->n_obj);
       }
+      else if  (item->type == ITEM_BOXFILL) {
+        // NB: text state uses "fill" state, which is the proper state
+        if ((item->brush.color_rgba & ~0xff) != old_text_rgba)
+          g_string_append_printf(str, "%.2f %.2f %.2f rg ",
+            RGBA_RGB(item->brush.color_rgba));
+        old_text_rgba = item->brush.color_rgba & ~0xff;
+        if ((item->brush.color_rgba & 0xf0) != 0xf0) { // transparent
+          g_string_append(str, "q /XoHi gs ");
+        }
+        g_string_append_printf(str, "\n%.2f %.2f %.2f %.2f re f ",
+           item->bbox.left, item->bbox.bottom /* sic */, // translation
+           item->bbox.right-item->bbox.left, item->bbox.top-item->bbox.bottom); // scaling
+      }
     }
   }
 }
@@ -1652,7 +1665,7 @@ void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble he
     l = (struct Layer *)layerlist->data;
     for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
       item = (struct Item *)itemlist->data;
-      if (item->type == ITEM_STROKE || item->type == ITEM_TEXT) {
+      if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || item->type == ITEM_BOXFILL) {
         if (item->brush.color_rgba != old_rgba)
           cairo_set_source_rgba(cr, RGBA_RGB(item->brush.color_rgba),
                                     RGBA_ALPHA(item->brush.color_rgba));
@@ -1698,6 +1711,15 @@ void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble he
         cairo_paint(cr);
         old_rgba = predef_colors_rgba[COLOR_BLACK];
         cairo_set_source_rgb(cr, 0, 0, 0);
+      }
+      if (item->type == ITEM_BOXFILL) {
+        GdkRectangle rect;
+        rect.x = item->bbox.left;
+        rect.y = item->bbox.top;
+        rect.width = item->bbox.right-item->bbox.left;
+        rect.height = item->bbox.bottom-item->bbox.top;
+        gdk_cairo_rectangle(cr,&rect);
+        cairo_fill(cr);
       }
     }
   }
