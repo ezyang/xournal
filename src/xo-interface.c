@@ -900,7 +900,7 @@ create_winMain (void)
   gtk_widget_show (toolsBoxFill);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsBoxFill);
   gtk_widget_add_accelerator (toolsBoxFill, "activate", accel_group,
-                              GDK_I, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GDK_B, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
                               GTK_ACCEL_VISIBLE);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsBoxFill), TRUE);
 
