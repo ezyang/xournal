@@ -1,3 +1,10 @@
+xournal (4.8~ezyang20130912-2) unstable; urgency=low
+
+  * Fix keyboard shortcut bug for box fill
+  * Add keyboard shortcuts for layer manipulation
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 12 Sep 2013 02:08:05 -0700
+
 xournal (4.8~ezyang20130912-1) unstable; urgency=low
 
   * New feature: box fill (produces new file format)
