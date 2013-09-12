@@ -675,6 +675,18 @@ on_button3Image_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_toolsBoxFill_activate               (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2BoxFill_activate             (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3BoxFill_activate             (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_optionsPasteInPlace_activate           (GtkCheckMenuItem *checkmenuitem,
                                         gpointer         user_data);
 
