@@ -1288,9 +1288,11 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
            cur_image->n_obj);
       }
       else if  (item->type == ITEM_BOXFILL) {
-        if ((item->brush.color_rgba & ~0xff) != old_rgba)
+        // NB: text state uses "fill" state, which is the proper state
+        if ((item->brush.color_rgba & ~0xff) != old_text_rgba)
           g_string_append_printf(str, "%.2f %.2f %.2f rg ",
             RGBA_RGB(item->brush.color_rgba));
+        old_text_rgba = item->brush.color_rgba & ~0xff;
         if ((item->brush.color_rgba & 0xf0) != 0xf0) { // transparent
           g_string_append(str, "q /XoHi gs ");
         }
