@@ -624,7 +624,8 @@ void recolor_selection(int color_no, guint color_rgba)
   undo->auxlist = NULL;
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
-    if (item->type != ITEM_STROKE && item->type != ITEM_TEXT) continue;
+    // ToDo: maybe this is all colorable elements, sans highlight
+    if (item->type != ITEM_STROKE && item->type != ITEM_TEXT && item->type != ITEM_BOXFILL) continue;
     if (item->type == ITEM_STROKE && item->brush.tool_type!=TOOL_PEN) continue;
     // store info for undo
     undo->itemlist = g_list_append(undo->itemlist, item);
