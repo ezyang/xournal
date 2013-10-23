@@ -1,3 +1,10 @@
+xournal (4.8~ezyang20131023) unstable; urgency=low
+
+  * Fix a bug in PDF export of box fill
+  * Modify behavior of selected boxes to change color along with stroke
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Wed, 23 Oct 2013 16:14:33 -0700
+
 xournal (4.8~ezyang20130912-2) unstable; urgency=low
 
   * Fix keyboard shortcut bug for box fill
