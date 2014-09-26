@@ -1,3 +1,9 @@
+xournal (4.8~ezyang20140925) unstable; urgency=low
+
+  * Pipe PDF export to GhostScript to ensure fonts are properlly embedded.
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 25 Sep 2014 23:59:44 -0700
+
 xournal (4.8~ezyang20131023) unstable; urgency=low
 
   * Fix a bug in PDF export of box fill
