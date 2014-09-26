@@ -24,6 +24,8 @@
 #include <zlib.h>
 #include <string.h>
 #include <locale.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <pango/pango.h>
 #include <pango/pangofc-font.h>
 #include <pango/pangoft2.h>
@@ -1330,8 +1332,23 @@ gboolean print_to_pdf(char *filename)
   struct PdfFont *font;
   struct PdfImage *image;
   char *tmpbuf;
-  
-  f = fopen(filename, "wb");
+  FILE *final_f;
+  char tmpname[] = "/tmp/fileXXXXXX";
+  int tmpfd;
+
+  final_f = fopen(filename, "wb");
+  if (final_f == NULL) {
+    perror("fopen");
+    return FALSE;
+  }
+
+  tmpfd = mkstemp(tmpname);
+  if (tmpfd == -1) {
+    perror("mkstemp");
+    return FALSE;
+  }
+
+  f = fdopen(tmpfd, "wb");
   if (f == NULL) return FALSE;
   setlocale(LC_NUMERIC, "C");
   annot = FALSE;
@@ -1510,6 +1527,7 @@ gboolean print_to_pdf(char *filename)
   for (list = pdfimages; list!=NULL; list = list->next) {
     image = (struct PdfImage *)list->data;
     if (!pdf_draw_image(image, &xref, pdfbuf)) {
+      // Hmm, I think this leaks
       return FALSE;
     }
     g_free(image);
@@ -1554,12 +1572,36 @@ gboolean print_to_pdf(char *filename)
   
   setlocale(LC_NUMERIC, "");
   if (fwrite(pdfbuf->str, 1, pdfbuf->len, f) < pdfbuf->len) {
+    perror("fwrite");
     fclose(f);
     g_string_free(pdfbuf, TRUE);
     return FALSE;
   }
   fclose(f);
   g_string_free(pdfbuf, TRUE);
+
+  pid_t pid = fork();
+  if (pid == -1) {
+    perror("fork");
+    return FALSE;
+  } else if (pid == 0) {
+    // NOTE: gs seems to be unable to deal with Xournal
+    // piping the data to it; or at least, I couldn't
+    // get that code to work (it segfaulted).
+    char* const args[] = { "gs", "-q", "-dBATCH", "-dNOPAUSE", "-sDEVICE=pdfwrite", "-sOutputFile=-", "-dPDFSETTINGS=/prepress", "-dEmbedAllFonts=true", "-dSubsetFonts=true", "-dCompatibilityLevel=1.6", tmpname, NULL };
+    dup2(fileno(final_f), STDOUT_FILENO);
+    execvp("gs", args);
+    _exit(EXIT_FAILURE);
+  }
+  fclose(final_f);
+
+  int status;
+  waitpid(pid, &status, 0);
+  unlink(tmpname);
+  if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+    perror("exit");
+    return FALSE;
+  }
   return TRUE;
 }
 
