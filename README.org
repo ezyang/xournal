@@ -1,0 +1,3 @@
+This is Edward Z. Yang's fork of Xournal.  I maintain some useful
+patches on top of the software.  You can get binaries at my
+Ubuntu PPA: https://launchpad.net/~ezyang/+archive/ubuntu/ppa
