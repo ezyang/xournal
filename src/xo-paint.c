@@ -669,11 +669,30 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_grab_focus(item->widget); 
 }
 
+static gchar* g_strreplace(const gchar *string, const gchar *search, const gchar *replacement) {
+    gchar *str, **arr;
+
+    g_return_val_if_fail(string != NULL, NULL);
+    g_return_val_if_fail(search != NULL, NULL);
+    g_return_val_if_fail(replacement != NULL, NULL);
+
+    arr = g_strsplit(string, search, -1);
+    if (arr != NULL && arr[0] != NULL) {
+        str = g_strjoinv(replacement, arr);
+    } else {
+        str = g_strdup(string);
+    }
+
+    g_strfreev(arr);
+
+    return str;
+}
+
 void end_text(void)
 {
   GtkTextBuffer *buffer;
   GtkTextIter start, end;
-  gchar *new_text;
+  gchar *raw_new_text, *new_text;
   struct UndoErasureData *erasure;
   GnomeCanvasItem *tmpitem;
 
@@ -683,7 +702,9 @@ void end_text(void)
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui.cur_item->widget));
   gtk_text_buffer_get_bounds(buffer, &start, &end);
   ui.cur_item->type = ITEM_TEXT;
-  new_text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
+  raw_new_text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
+  new_text = g_strreplace(raw_new_text, "\t", "        "); // HACK
+  g_free(raw_new_text);
   ui.cur_item_type = ITEM_NONE;
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), TRUE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), TRUE);
