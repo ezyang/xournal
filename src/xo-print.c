@@ -1588,9 +1588,14 @@ gboolean print_to_pdf(char *filename)
     // NOTE: gs seems to be unable to deal with Xournal
     // piping the data to it; or at least, I couldn't
     // get that code to work (it segfaulted).
-    char* const args[] = { "gs", "-q", "-dBATCH", "-dNOPAUSE", "-sDEVICE=pdfwrite", "-sOutputFile=-", "-dPDFSETTINGS=/prepress", "-dEmbedAllFonts=true", "-dSubsetFonts=true", "-dCompatibilityLevel=1.6", tmpname, NULL };
     dup2(fileno(final_f), STDOUT_FILENO);
-    execvp("gs", args);
+    if (getenv("XOURNAL_DISABLE_GS") == NULL) {
+      char* const args[] = { "gs", "-q", "-dBATCH", "-dNOPAUSE", "-sDEVICE=pdfwrite", "-sOutputFile=-", "-dPDFSETTINGS=/prepress", "-dEmbedAllFonts=true", "-dSubsetFonts=true", "-dCompatibilityLevel=1.6", tmpname, NULL };
+      execvp("gs", args);
+    } else {
+      char* const args[] = { "cat", tmpname, NULL };
+      execvp("cat", args);
+    }
     _exit(EXIT_FAILURE);
   }
   fclose(final_f);
