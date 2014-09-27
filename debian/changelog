@@ -1,3 +1,11 @@
+xournal (4.8~ezyang20140927) unstable; urgency=low
+
+  * Convert tabs into spaces to avoid problems with some PDF renderers
+    (primarily GhostScript).
+  * Add XOURNAL_DISABLE_GS variable to turn off piping to GhostScript.
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Sat, 27 Sep 2014 03:05:05 -0700
+
 xournal (4.8~ezyang20140925) unstable; urgency=low
 
   * Pipe PDF export to GhostScript to ensure fonts are properlly embedded.
