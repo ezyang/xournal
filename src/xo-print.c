@@ -1300,7 +1300,7 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
         }
         g_string_append_printf(str, "\n%.2f %.2f %.2f %.2f re f ",
            item->bbox.left, item->bbox.bottom /* sic */, // translation
-           item->bbox.right-item->bbox.left, item->bbox.top-item->bbox.bottom, item->bbox.bottom-item->bbox.top); // scaling
+           item->bbox.right-item->bbox.left, item->bbox.top-item->bbox.bottom); // scaling
       }
     }
   }
