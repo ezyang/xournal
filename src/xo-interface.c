@@ -106,6 +106,7 @@ create_winMain (void)
   GtkWidget *journalNewPageEnd;
   GtkWidget *journalNewPageKeepsBG;
   GtkWidget *journalDeletePage;
+  GtkWidget *journalDuplicatePage;
   GtkWidget *separator7;
   GtkWidget *journalNewLayer;
   GtkWidget *journalDeleteLayer;
@@ -728,6 +729,13 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalDeletePage);
   gtk_widget_add_accelerator (journalDeletePage, "activate", accel_group,
                               GDK_D, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
+
+  journalDuplicatePage = gtk_menu_item_new_with_mnemonic (_("_Duplicate Page"));
+  gtk_widget_show (journalDuplicatePage);
+  gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalDuplicatePage);
+  gtk_widget_add_accelerator (journalDuplicatePage, "activate", accel_group,
+                              GDK_D, (GdkModifierType) GDK_CONTROL_MASK,
                               GTK_ACCEL_VISIBLE);
 
   separator7 = gtk_separator_menu_item_new ();
@@ -2248,6 +2256,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) journalDeletePage, "activate",
                     G_CALLBACK (on_journalDeletePage_activate),
                     NULL);
+  g_signal_connect ((gpointer) journalDuplicatePage, "activate",
+                    G_CALLBACK (on_journalDuplicatePage_activate),
+                    NULL);
   g_signal_connect ((gpointer) journalNewLayer, "activate",
                     G_CALLBACK (on_journalNewLayer_activate),
                     NULL);
@@ -2806,6 +2817,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageEnd, "journalNewPageEnd");
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageKeepsBG, "journalNewPageKeepsBG");
   GLADE_HOOKUP_OBJECT (winMain, journalDeletePage, "journalDeletePage");
+  GLADE_HOOKUP_OBJECT (winMain, journalDuplicatePage, "journalDuplicatePage");
   GLADE_HOOKUP_OBJECT (winMain, separator7, "separator7");
   GLADE_HOOKUP_OBJECT (winMain, journalNewLayer, "journalNewLayer");
   GLADE_HOOKUP_OBJECT (winMain, journalDeleteLayer, "journalDeleteLayer");
