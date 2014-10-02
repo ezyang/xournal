@@ -668,10 +668,14 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
     font_desc = pango_font_description_from_string(item->font_name);
     pango_font_description_set_absolute_size(font_desc, 
             item->font_size*ui.zoom*PANGO_SCALE);
+    guint color = item->brush.color_rgba;
+    if (item->annot) {
+        color = color & 0xFFFFFF99;
+    }
     item->canvas_item = gnome_canvas_item_new(group,
           gnome_canvas_text_get_type(),
           "x", item->bbox.left, "y", item->bbox.top, "anchor", GTK_ANCHOR_NW,
-          "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
+          "font-desc", font_desc, "fill-color-rgba", color,
           "text", item->text, NULL);
     update_item_bbox(item);
 #ifdef WIN32 // done
@@ -1111,6 +1115,10 @@ void update_tool_menu(void)
     case TOOL_TEXT:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsText")), TRUE);
+      break;
+    case TOOL_ANNOT:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsAnnot")), TRUE);
       break;
     case TOOL_IMAGE:
       gtk_check_menu_item_set_active(
@@ -2097,7 +2105,7 @@ void switch_mapping(int m)
   ui.cur_mapping = m;
   if (ui.toolno[m] < NUM_STROKE_TOOLS) 
     ui.cur_brush = &(ui.brushes[m][ui.toolno[m]]);
-  if (ui.toolno[m] == TOOL_TEXT || ui.toolno[m] == TOOL_BOXFILL)
+  if (ui.toolno[m] == TOOL_TEXT || ui.toolno[m] == TOOL_ANNOT || ui.toolno[m] == TOOL_BOXFILL)
     ui.cur_brush = &(ui.brushes[m][TOOL_PEN]);
   if (m==0) ui.which_unswitch_button = 0;
   

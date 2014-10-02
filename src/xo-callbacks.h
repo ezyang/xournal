@@ -49,6 +49,10 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_filePrintPDFNoAnnot_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_fileQuit_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
@@ -230,6 +234,10 @@ on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
 
 void
 on_toolsText_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_toolsAnnot_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
