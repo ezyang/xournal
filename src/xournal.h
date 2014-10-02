@@ -224,6 +224,7 @@ typedef struct Item {
 #define ITEM_IMAGE 24
 #define ITEM_SELECTREGION 25
 #define ITEM_BOXFILL 26
+#define ITEM_DUPLICATE_PAGE 27
 
 #define IS_ITEM_OBJECT(t) ((t) == ITEM_STROKE || \
                            (t) == ITEM_TEXT   || \

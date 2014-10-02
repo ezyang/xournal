@@ -546,6 +546,25 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     if (ui.pageno < 0) ui.pageno = 0;
     do_switch_page(ui.pageno, TRUE, TRUE);
   }
+  else if (undo->type == ITEM_DUPLICATE_PAGE) {
+    // copied from ITEM_REMOVE_PAGE (redo)
+    // unmap all the canvas items
+    gtk_object_destroy(GTK_OBJECT(undo->page->group));
+    undo->page->group = NULL;
+    undo->page->bg->canvas_item = NULL;
+    for (list = undo->page->layers; list!=NULL; list = list->next) {
+      struct Layer *l = (struct Layer *)list->data;
+      for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next)
+        ((struct Item *)itemlist->data)->canvas_item = NULL;
+      l->group = NULL;
+    }
+    journal.pages = g_list_remove(journal.pages, undo->page);
+    journal.npages--;
+    if (ui.pageno > undo->val || ui.pageno == journal.npages) ui.pageno--;
+    ui.cur_page = NULL;
+      // so do_switch_page() won't try to remap the layers of the defunct page
+    do_switch_page(ui.pageno, TRUE, TRUE);
+  }
   else if (undo->type == ITEM_DELETE_PAGE) {
     journal.pages = g_list_insert(journal.pages, undo->page, undo->val);
     journal.npages++;
@@ -754,6 +773,13 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     
     journal.pages = g_list_insert(journal.pages, redo->page, redo->val);
     journal.npages++;
+    do_switch_page(redo->val, TRUE, TRUE);
+  }
+  else if (redo->type == ITEM_DUPLICATE_PAGE) {
+    // copied from ITEM_REMOVE_PAGE (undo)
+    journal.pages = g_list_insert(journal.pages, redo->page, redo->val);
+    journal.npages++;
+    make_canvas_items(); // re-create the canvas items
     do_switch_page(redo->val, TRUE, TRUE);
   }
   else if (redo->type == ITEM_DELETE_PAGE) {
@@ -1178,6 +1204,84 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
   ui.cur_page = NULL;
      // so do_switch_page() won't try to remap the layers of the defunct page
   do_switch_page(ui.pageno, TRUE, TRUE);
+}
+
+
+void
+on_journalDuplicatePage_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  GList *layerlist, *itemlist;
+  struct Layer *layer, *new_layer;
+  struct Item *item, *new_item;
+
+  end_text();
+  reset_selection();
+
+  // from new_page
+  struct Page *pg = (struct Page *) g_memdup(ui.cur_page, sizeof(struct Page));
+  pg->layers = NULL;
+  pg->nlayers = 0; // temporary
+  pg->bg = (struct Background *)g_memdup(ui.cur_page->bg, sizeof(struct Background));
+  pg->bg->canvas_item = NULL;
+  if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
+    g_object_ref(pg->bg->pixbuf);
+    refstring_ref(pg->bg->filename);
+  }
+  pg->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+      gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
+  make_page_clipbox(pg);
+  update_canvas_bg(pg);
+
+  journal.pages = g_list_insert(journal.pages, pg, ui.pageno+1);
+  journal.npages++;
+
+  for (layerlist = ui.cur_page->layers; layerlist!=NULL; layerlist = layerlist->next) {
+    layer = (struct Layer *)layerlist->data;
+    new_layer = g_new(struct Layer, 1);
+    new_layer->items = NULL;
+    new_layer->nitems = 0;
+    new_layer->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+      pg->group, gnome_canvas_group_get_type(), NULL);
+    pg->layers = g_list_append(pg->layers, new_layer);
+    pg->nlayers++;
+
+    for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+      item = (struct Item *)itemlist->data;
+      new_item = (struct Item *) g_memdup(item, sizeof(struct Item));
+      if (item->type == ITEM_STROKE) {
+        new_item->path = gnome_canvas_points_new(item->path->num_points);
+        g_memmove(new_item->path->coords, item->path->coords, 2*item->path->num_points*sizeof(double));
+        if (item->brush.variable_width) {
+          new_item->widths = g_memdup(item->widths, (item->path->num_points-1)*sizeof(double));
+        }
+      }
+      if (item->type == ITEM_TEXT) {
+        new_item->text = g_strdup(item->text);
+        new_item->font_name = g_strdup(item->font_name);
+      }
+      if (item->type == ITEM_IMAGE) {
+        if (item->image_png_len > 0) {
+          new_item->image_png = g_memdup(item->image_png, item->image_png_len);
+        }
+      }
+      if (item->type == ITEM_BOXFILL) {
+        // nop
+      }
+      new_layer->items = g_list_append(new_layer->items, new_item);
+      new_layer->nitems++;
+      update_item_bbox(new_item);
+      make_canvas_item_one(new_layer->group, new_item);
+    }
+  }
+
+  do_switch_page(ui.pageno+1, TRUE, TRUE);
+
+  prepare_new_undo();
+  undo->type = ITEM_DUPLICATE_PAGE;
+  undo->val = ui.pageno;
+  undo->page = pg;
+
 }
 
 
