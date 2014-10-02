@@ -726,6 +726,9 @@ create_winMain (void)
   journalDeletePage = gtk_menu_item_new_with_mnemonic (_("_Delete Page"));
   gtk_widget_show (journalDeletePage);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalDeletePage);
+  gtk_widget_add_accelerator (journalDeletePage, "activate", accel_group,
+                              GDK_D, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
 
   separator7 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator7);
