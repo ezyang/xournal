@@ -144,6 +144,9 @@ void update_cursor(void)
   else if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) {
     ui.cursor = gdk_cursor_new(GDK_XTERM);
   }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_ANNOT) {
+    ui.cursor = gdk_cursor_new(GDK_CROSS);
+  }
   
   gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
 }
@@ -604,7 +607,7 @@ void resize_textview(gpointer *toplevel, gpointer *data)
   ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
 }
 
-void start_text(GdkEvent *event, struct Item *item)
+void start_text(gboolean annot, GdkEvent *event, struct Item *item)
 {
   double pt[2];
   GtkTextBuffer *buffer;
@@ -616,9 +619,11 @@ void start_text(GdkEvent *event, struct Item *item)
 
   ui.cur_item_type = ITEM_TEXT;
 
+  // at the moment: only modify on creation
   if (item==NULL) {
     item = g_new(struct Item, 1);
     item->text = NULL;
+    item->annot = annot;
     item->canvas_item = NULL;
     item->bbox.left = pt[0];
     item->bbox.top = pt[1];
@@ -642,7 +647,19 @@ void start_text(GdkEvent *event, struct Item *item)
   if (item->text!=NULL)
     gtk_text_buffer_set_text(buffer, item->text, -1);
   gtk_widget_modify_font(item->widget, font_desc);
-  rgb_to_gdkcolor(item->brush.color_rgba, &color);
+  guint raw_color = item->brush.color_rgba;
+  if (item->annot) {
+      // transparency not supported, so do it manually (against
+      // white because that's all we got
+      guint r = (raw_color & 0xFF000000) >> 24;
+      guint g = (raw_color & 0x00FF0000) >> 16;
+      guint b = (raw_color & 0x0000FF00) >> 8;
+      guint a = 0x99;
+      raw_color = (0xFF - ((0xFF - r) * a) / 0xFF) << 24
+                | (0xFF - ((0xFF - g) * a) / 0xFF) << 16
+                | (0xFF - ((0xFF - b) * a) / 0xFF) << 8;
+  }
+  rgb_to_gdkcolor(raw_color, &color);
   gtk_widget_modify_text(item->widget, GTK_STATE_NORMAL, &color);
   pango_font_description_free(font_desc);
 

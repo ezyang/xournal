@@ -150,14 +150,16 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 #define TOOL_HAND         7
 #define TOOL_IMAGE        8
 #define TOOL_BOXFILL      9
+#define TOOL_ANNOT        10
 
 #define NUM_STROKE_TOOLS  3
-#define NUM_TOOLS         10
+#define NUM_TOOLS         11
 #define NUM_BUTTONS       3
 
 #define IS_TOOL_COLORED(t) ((t) == TOOL_PEN         || \
                             (t) == TOOL_HIGHLIGHTER || \
                             (t) == TOOL_TEXT        || \
+                            (t) == TOOL_ANNOT       || \
                             (t) == TOOL_BOXFILL        )
 
 #define TOOLOPT_ERASER_STANDARD     0
@@ -185,6 +187,7 @@ typedef struct Item {
   gchar *text;
   gchar *font_name;
   gdouble font_size;
+  gboolean annot;
   GtkWidget *widget; // the widget while text is being edited (ITEM_TEMP_TEXT)
   // the following fields for ITEM_IMAGE:
   GdkPixbuf *image;  // the image
