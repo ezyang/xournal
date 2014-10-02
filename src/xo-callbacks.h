@@ -149,6 +149,10 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_journalDuplicatePage_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
