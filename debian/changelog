@@ -1,3 +1,11 @@
+xournal (4.8~ezyang20141002) unstable; urgency=medium
+
+  * Ctrl+Shift+D accelerator for page deletion
+  * Annotations (text which can be omitted from PDF export)
+  * Duplicate page command
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Thu, 02 Oct 2014 13:01:26 -0700
+
 xournal (4.8~ezyang20140927) unstable; urgency=low
 
   * Convert tabs into spaces to avoid problems with some PDF renderers
