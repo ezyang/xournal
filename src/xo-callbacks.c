@@ -343,10 +343,24 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
 #endif
 }
 
+static void filePrintPDF(gboolean annots, GtkMenuItem *menu_item, gpointer user_data);
 
 void
 on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
+{
+    filePrintPDF(TRUE, menuitem, user_data);
+}
+
+void
+on_filePrintPDFNoAnnot_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    filePrintPDF(FALSE, menuitem, user_data);
+}
+
+static void
+filePrintPDF(gboolean annots, GtkMenuItem *menuitem, gpointer user_data)
 {
 
   GtkWidget *dialog, *warning_dialog;
@@ -409,11 +423,11 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
 
   prefer_legacy = ui.exportpdf_prefer_legacy;
   if (prefer_legacy) { // try printing via our own PDF parser and generator
-    if (!print_to_pdf(filename))
+    if (!print_to_pdf(annots, filename))
       prefer_legacy = FALSE; // if failed, fall back to cairo
   }
   if (!prefer_legacy) { // try printing via cairo
-    if (!print_to_pdf_cairo(filename)) {
+    if (!print_to_pdf_cairo(annots, filename)) {
       set_cursor_busy(FALSE);
       dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
@@ -1769,6 +1783,33 @@ on_toolsText_activate                  (GtkMenuItem     *menuitem,
 
 
 void
+on_toolsAnnot_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+    if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
+      return;
+  } else {
+    if (!gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem)))
+      return;
+  }
+  
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_ANNOT) return;
+  
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
+  reset_selection();
+  ui.toolno[ui.cur_mapping] = TOOL_ANNOT;
+  ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_PEN]);
+  update_mapping_linkings(-1);
+  update_tool_buttons();
+  update_tool_menu();
+  update_color_menu();
+  update_cursor();
+}
+
+
+void
 on_toolsImage_activate                 (GtkMenuItem *menuitem,
                                         gpointer         user_data)
 {
@@ -2536,12 +2577,13 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   update_cursor();
 #endif
 
-  // in text tool, clicking in a text area edits it
-  if (ui.toolno[mapping] == TOOL_TEXT) {
+  // in text/annotation tool, clicking in a text area edits it
+  // (it appears to change the status too)
+  if (ui.toolno[mapping] == TOOL_TEXT || ui.toolno[mapping] == TOOL_ANNOT) {
     item = click_is_in_text(ui.cur_layer, pt[0], pt[1]);
     if (item!=NULL) { 
       reset_selection();
-      start_text((GdkEvent *)event, item);
+      start_text(ui.toolno[mapping] == TOOL_ANNOT, (GdkEvent *)event, item);
       return FALSE;
     }
   }
@@ -2582,7 +2624,10 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     start_vertspace((GdkEvent *)event);
   }
   else if (ui.toolno[mapping] == TOOL_TEXT) {
-    start_text((GdkEvent *)event, NULL);
+    start_text(FALSE, (GdkEvent *)event, NULL);
+  }
+  else if (ui.toolno[mapping] == TOOL_ANNOT) {
+    start_text(TRUE, (GdkEvent *)event, NULL);
   }
   else if (ui.toolno[mapping] == TOOL_IMAGE) {
     insert_image((GdkEvent *)event);

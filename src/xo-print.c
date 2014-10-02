@@ -1317,7 +1317,7 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
     3 ... the page objects
 */
 
-gboolean print_to_pdf(char *filename)
+gboolean print_to_pdf(gboolean annots, char *filename)
 {
   FILE *f;
   GString *pdfbuf, *pgstrm, *zpgstrm, *tmpstr;
@@ -1684,7 +1684,7 @@ void print_background(cairo_t *cr, struct Page *pg)
   }
 }
 
-void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble height, PangoLayout *layout)
+void print_page_to_cairo(gboolean annots, cairo_t *cr, struct Page *pg, gdouble width, gdouble height, PangoLayout *layout)
 {
   gdouble scale;
   guint old_rgba;
@@ -1739,6 +1739,7 @@ void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble he
         }
       }
       if (item->type == ITEM_TEXT) {
+       if (!item->annot || annots) {
         font_desc = pango_font_description_from_string(item->font_name);
         if (item->font_size)
           pango_font_description_set_absolute_size(font_desc,
@@ -1748,6 +1749,7 @@ void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble he
         pango_layout_set_text(layout, item->text, -1);
         cairo_move_to(cr, item->bbox.left, item->bbox.top);
         pango_cairo_show_layout(cr, layout);
+       }
       }
       if (item->type == ITEM_IMAGE) {
         double scalex = (item->bbox.right-item->bbox.left)/gdk_pixbuf_get_width(item->image);
@@ -1786,13 +1788,13 @@ void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, g
   width = gtk_print_context_get_width(context);
   height = gtk_print_context_get_height(context);
   layout = gtk_print_context_create_pango_layout(context);
-  print_page_to_cairo(cr, pg, width, height, layout);
+  print_page_to_cairo(TRUE, cr, pg, width, height, layout);
   g_object_unref(layout);
 }
 
 #endif
 
-gboolean print_to_pdf_cairo(char *filename)
+gboolean print_to_pdf_cairo(gboolean annots, char *filename)
 {
   cairo_t *cr;
   cairo_surface_t *surface;
@@ -1807,7 +1809,7 @@ gboolean print_to_pdf_cairo(char *filename)
     cairo_pdf_surface_set_size(surface, pg->width, pg->height);
     cr = cairo_create(surface);
     layout = pango_cairo_create_layout(cr);
-    print_page_to_cairo(cr, pg, pg->width, pg->height, layout);
+    print_page_to_cairo(annots, cr, pg, pg->width, pg->height, layout);
     g_object_unref(layout);
     cairo_destroy(cr);
     cairo_surface_show_page(surface);

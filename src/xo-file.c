@@ -269,8 +269,8 @@ gboolean save_journal(const char *filename, gboolean is_auto)
         }
         if (item->type == ITEM_TEXT) {
           tmpstr = g_markup_escape_text(item->font_name, -1);
-          gzprintf(f, "<text font=\"%s\" size=\"%.2f\" x=\"%.2f\" y=\"%.2f\" color=\"",
-            tmpstr, item->font_size, item->bbox.left, item->bbox.top);
+          gzprintf(f, "<text font=\"%s\" size=\"%.2f\" x=\"%.2f\" y=\"%.2f\" annot=\"%d\" color=\"",
+            tmpstr, item->font_size, item->bbox.left, item->bbox.top, item->annot ? 1 : 0);
           g_free(tmpstr);
           if (item->brush.color_no >= 0)
             gzputs(f, color_names[item->brush.color_no]);
@@ -728,6 +728,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     tmpItem->path = NULL;
     tmpItem->canvas_item = NULL;
     tmpItem->widths = NULL;
+    tmpItem->annot = FALSE;
     tmpLayer->items = g_list_append(tmpLayer->items, tmpItem);
     tmpLayer->nitems++;
     // scan for tool, color, and width attributes
@@ -847,8 +848,11 @@ void xoj_parser_start_element(GMarkupParseContext *context,
           if (*ptr!=0) *error = xoj_invalid();
         }
         has_attr |= 16;
-      }
-      else *error = xoj_invalid();
+      } else if (!strcmp(*attribute_names, "annot")) {
+        if (!strcmp(*attribute_values, "1")) {
+          tmpItem->annot = TRUE;
+        }
+      } else *error = xoj_invalid();
       attribute_names++;
       attribute_values++;
     }

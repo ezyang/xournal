@@ -56,6 +56,7 @@ create_winMain (void)
   GtkWidget *image624;
   GtkWidget *filePrint;
   GtkWidget *filePrintPDF;
+  GtkWidget *filePrintPDFNoAnnot;
   GtkWidget *separator2;
   GtkWidget *fileQuit;
   GtkWidget *menuEdit;
@@ -145,6 +146,7 @@ create_winMain (void)
   GtkWidget *toolsEraser;
   GtkWidget *toolsHighlighter;
   GtkWidget *toolsText;
+  GtkWidget *toolsAnnot;
   GtkWidget *toolsImage;
   GtkWidget *toolsBoxFill;
   GtkWidget *separator15;
@@ -306,6 +308,7 @@ create_winMain (void)
   GtkWidget *buttonEraser;
   GtkWidget *buttonHighlighter;
   GtkWidget *buttonText;
+  GtkWidget *buttonAnnot;
   GtkWidget *buttonImage;
   GtkWidget *buttonBoxFill;
   GtkWidget *buttonReco;
@@ -477,6 +480,10 @@ create_winMain (void)
   gtk_widget_add_accelerator (filePrintPDF, "activate", accel_group,
                               GDK_E, (GdkModifierType) GDK_CONTROL_MASK,
                               GTK_ACCEL_VISIBLE);
+
+  filePrintPDFNoAnnot = gtk_menu_item_new_with_mnemonic (_("Export to PDF (no annotations)"));
+  gtk_widget_show (filePrintPDFNoAnnot);
+  gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintPDFNoAnnot);
 
   separator2 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator2);
@@ -913,6 +920,12 @@ create_winMain (void)
                               GDK_T, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
                               GTK_ACCEL_VISIBLE);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsText), TRUE);
+
+  toolsAnnot = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, _("_Annotation"));
+  toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsAnnot));
+  gtk_widget_show (toolsAnnot);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsAnnot);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsAnnot), TRUE);
 
   toolsImage = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, _("_Image"));
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsImage));
@@ -1703,6 +1716,17 @@ create_winMain (void)
   gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonText), buttonPen_group);
   buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonText));
 
+  buttonAnnot = (GtkWidget*) gtk_radio_tool_button_new (NULL);
+  gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonAnnot), _("Annot"));
+  tmp_image = gtk_image_new_from_stock ("gtk-execute", tmp_toolbar_icon_size);
+  gtk_widget_show (tmp_image);
+  gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (buttonAnnot), tmp_image);
+  gtk_widget_show (buttonAnnot);
+  gtk_container_add (GTK_CONTAINER (toolbarPen), buttonAnnot);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonAnnot), tooltips, _("Annot"), NULL);
+  gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonAnnot), buttonPen_group);
+  buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonAnnot));
+
   buttonImage = (GtkWidget*) gtk_radio_tool_button_new (NULL);
   gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonImage), _("Image"));
   tmp_image = gtk_image_new_from_stock ("gtk-orientation-portrait", tmp_toolbar_icon_size);
@@ -2137,6 +2161,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) filePrintPDF, "activate",
                     G_CALLBACK (on_filePrintPDF_activate),
                     NULL);
+  g_signal_connect ((gpointer) filePrintPDFNoAnnot, "activate",
+                    G_CALLBACK (on_filePrintPDFNoAnnot_activate),
+                    NULL);
   g_signal_connect ((gpointer) fileQuit, "activate",
                     G_CALLBACK (on_fileQuit_activate),
                     NULL);
@@ -2289,6 +2316,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) toolsText, "toggled",
                     G_CALLBACK (on_toolsText_activate),
+                    NULL);
+  g_signal_connect ((gpointer) toolsAnnot, "toggled",
+                    G_CALLBACK (on_toolsAnnot_activate),
                     NULL);
   g_signal_connect ((gpointer) toolsImage, "toggled",
                     G_CALLBACK (on_toolsImage_activate),
@@ -2608,6 +2638,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) buttonText, "toggled",
                     G_CALLBACK (on_toolsText_activate),
                     NULL);
+  g_signal_connect ((gpointer) buttonAnnot, "toggled",
+                    G_CALLBACK (on_toolsAnnot_activate),
+                    NULL);
   g_signal_connect ((gpointer) buttonImage, "toggled",
                     G_CALLBACK (on_toolsImage_activate),
                     NULL);
@@ -2721,6 +2754,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, image624, "image624");
   GLADE_HOOKUP_OBJECT (winMain, filePrint, "filePrint");
   GLADE_HOOKUP_OBJECT (winMain, filePrintPDF, "filePrintPDF");
+  GLADE_HOOKUP_OBJECT (winMain, filePrintPDFNoAnnot, "filePrintPDFNoAnnot");
   GLADE_HOOKUP_OBJECT (winMain, separator2, "separator2");
   GLADE_HOOKUP_OBJECT (winMain, fileQuit, "fileQuit");
   GLADE_HOOKUP_OBJECT (winMain, menuEdit, "menuEdit");
@@ -2806,6 +2840,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, toolsEraser, "toolsEraser");
   GLADE_HOOKUP_OBJECT (winMain, toolsHighlighter, "toolsHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, toolsText, "toolsText");
+  GLADE_HOOKUP_OBJECT (winMain, toolsAnnot, "toolsAnnot");
   GLADE_HOOKUP_OBJECT (winMain, toolsImage, "toolsImage");
   GLADE_HOOKUP_OBJECT (winMain, toolsBoxFill, "toolsBoxFill");
   GLADE_HOOKUP_OBJECT (winMain, separator15, "separator15");
@@ -2955,6 +2990,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, buttonEraser, "buttonEraser");
   GLADE_HOOKUP_OBJECT (winMain, buttonHighlighter, "buttonHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, buttonText, "buttonText");
+  GLADE_HOOKUP_OBJECT (winMain, buttonAnnot, "buttonAnnot");
   GLADE_HOOKUP_OBJECT (winMain, buttonImage, "buttonImage");
   GLADE_HOOKUP_OBJECT (winMain, buttonBoxFill, "buttonBoxFill");
   GLADE_HOOKUP_OBJECT (winMain, buttonReco, "buttonReco");

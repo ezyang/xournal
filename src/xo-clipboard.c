@@ -104,6 +104,7 @@ void selection_to_clip(void)
     else if (item->type == ITEM_TEXT) {
       bufsz+= sizeof(int) // type
             + sizeof(struct Brush) // brush
+            + sizeof(int) // annot?
             + 2*sizeof(double) // bbox upper-left
             + sizeof(int) // text len
             + strlen(item->text)+1 // text
@@ -157,6 +158,7 @@ void selection_to_clip(void)
     }
     if (item->type == ITEM_TEXT) {
       g_memmove(p, &item->brush, sizeof(struct Brush)); p+= sizeof(struct Brush);
+      g_memmove(p, &item->annot, sizeof(int)); p+= sizeof(int);
       g_memmove(p, &item->bbox.left, sizeof(double)); p+= sizeof(double);
       g_memmove(p, &item->bbox.top, sizeof(double)); p+= sizeof(double);
       val = strlen(item->text);
@@ -281,6 +283,7 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
     }
     if (item->type == ITEM_TEXT) {
       g_memmove(&item->brush, p, sizeof(struct Brush)); p+= sizeof(struct Brush);
+      g_memmove(&item->annot, p, sizeof(int)); p+= sizeof(int);
       g_memmove(&item->bbox.left, p, sizeof(double)); p+= sizeof(double);
       g_memmove(&item->bbox.top, p, sizeof(double)); p+= sizeof(double);
       item->bbox.left += hoffset;
