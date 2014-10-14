@@ -1251,7 +1251,7 @@ on_journalDuplicatePage_activate       (GtkMenuItem     *menuitem,
       new_item = (struct Item *) g_memdup(item, sizeof(struct Item));
       new_layer->items = g_list_append(new_layer->items, new_item);
       new_layer->nitems++;
-      make_canvas_item_one(new_layer->group, item);
+      make_canvas_item_one(new_layer->group, new_item);
     }
   }
 
