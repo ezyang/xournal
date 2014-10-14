@@ -56,10 +56,12 @@ void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
 
   // Scale at native size, unless that won't fit, in which case we shrink it down.
   scale = 1 / ui.zoom;
+  /*
   if ((scale * gdk_pixbuf_get_width(item->image)) > ui.cur_page->width - item->bbox.left)
     scale = (ui.cur_page->width - item->bbox.left) / gdk_pixbuf_get_width(item->image);
   if ((scale * gdk_pixbuf_get_height(item->image)) > ui.cur_page->height - item->bbox.top)
     scale = (ui.cur_page->height - item->bbox.top) / gdk_pixbuf_get_height(item->image);
+    */
 
   item->bbox.right = item->bbox.left + scale * gdk_pixbuf_get_width(item->image);
   item->bbox.bottom = item->bbox.top + scale * gdk_pixbuf_get_height(item->image);
