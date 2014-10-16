@@ -1,3 +1,12 @@
+xournal (4.8~ezyang20141015) unstable; urgency=high
+
+  * Fix bugs in duplicate page command
+  * Adjust the "current page" based on middle of viewport rather than edge
+  * Ctrl+Shift+N accelerator for new page after
+  * Don't resize images if they're too big
+
+ -- Edward Z. Yang <ezyang@cs.stanford.edu>  Wed, 15 Oct 2014 18:16:49 -0700
+
 xournal (4.8~ezyang20141002) unstable; urgency=medium
 
   * Ctrl+Shift+D accelerator for page deletion
