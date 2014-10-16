@@ -715,6 +715,9 @@ create_winMain (void)
   journalNewPageAfter = gtk_menu_item_new_with_mnemonic (_("New Page _After"));
   gtk_widget_show (journalNewPageAfter);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalNewPageAfter);
+  gtk_widget_add_accelerator (journalNewPageAfter, "activate", accel_group,
+                              GDK_N, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
 
   journalNewPageEnd = gtk_menu_item_new_with_mnemonic (_("New Page At _End"));
   gtk_widget_show (journalNewPageEnd);
