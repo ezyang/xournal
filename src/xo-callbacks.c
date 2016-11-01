@@ -27,6 +27,8 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "xournal.h"
+#include "xo-clipboard.h"
+#include "xo-image.h"
 #include "xo-callbacks.h"
 #include "xo-interface.h"
 #include "xo-support.h"
@@ -2495,8 +2497,13 @@ on_helpAbout_activate                  (GtkMenuItem     *menuitem,
   end_text();
   aboutDialog = create_aboutDialog ();
   labelTitle = GTK_LABEL(g_object_get_data(G_OBJECT(aboutDialog), "labelTitle"));
+  #ifdef HAVE_CONFIG_H
   gtk_label_set_markup(labelTitle, 
     "<span size=\"xx-large\" weight=\"bold\">Xournal " VERSION_STRING "</span>");
+  #else
+  gtk_label_set_markup(labelTitle, 
+    "<span size=\"xx-large\" weight=\"bold\">Xournal (unconfigured)</span>");
+  #endif
   gtk_dialog_run (GTK_DIALOG(aboutDialog));
   gtk_widget_destroy(aboutDialog);
 }
