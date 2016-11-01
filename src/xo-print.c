@@ -34,6 +34,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <cairo/cairo-pdf.h>
+#include <sys/wait.h>
 
 #define NO_MAPPERS
 #define NO_TYPE3

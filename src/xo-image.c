@@ -24,6 +24,9 @@
 #include "xournal.h"
 #include "xo-support.h"
 #include "xo-image.h"
+#include "xo-misc.h"
+#include "xo-paint.h"
+#include "xo-selection.h"
 
 // create pixbuf from buffer, or return NULL on failure
 GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen)

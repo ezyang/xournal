@@ -23,6 +23,8 @@ void continue_stroke(GdkEvent *event);
 void finalize_stroke(void);
 void abort_stroke(void);
 
+void subdivide_cur_path();
+
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes);
 void finalize_erasure(void);
 

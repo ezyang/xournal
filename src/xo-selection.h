@@ -33,3 +33,5 @@ void selection_delete(void);
 
 void recolor_selection(int color_no, guint color_rgba);
 void rethicken_selection(int val);
+
+void make_dashed(GnomeCanvasItem *item);
