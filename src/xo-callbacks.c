@@ -345,24 +345,31 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
 #endif
 }
 
-static void filePrintPDF(gboolean annots, GtkMenuItem *menu_item, gpointer user_data);
+static void filePrintPDF(gboolean annots, gboolean frame, GtkMenuItem *menu_item, gpointer user_data);
 
 void
 on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-    filePrintPDF(TRUE, menuitem, user_data);
+    filePrintPDF(TRUE, FALSE, menuitem, user_data);
+}
+
+void
+on_filePrintPDFFrames_activate               (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    filePrintPDF(FALSE, TRUE, menuitem, user_data);
 }
 
 void
 on_filePrintPDFNoAnnot_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-    filePrintPDF(FALSE, menuitem, user_data);
+    filePrintPDF(FALSE, FALSE, menuitem, user_data);
 }
 
 static void
-filePrintPDF(gboolean annots, GtkMenuItem *menuitem, gpointer user_data)
+filePrintPDF(gboolean annots, gboolean frames, GtkMenuItem *menuitem, gpointer user_data)
 {
 
   GtkWidget *dialog, *warning_dialog;
@@ -423,18 +430,28 @@ filePrintPDF(gboolean annots, GtkMenuItem *menuitem, gpointer user_data)
 
   set_cursor_busy(TRUE);
 
-  prefer_legacy = ui.exportpdf_prefer_legacy;
-  if (prefer_legacy) { // try printing via our own PDF parser and generator
-    if (!print_to_pdf(annots, filename))
-      prefer_legacy = FALSE; // if failed, fall back to cairo
-  }
-  if (!prefer_legacy) { // try printing via cairo
-    if (!print_to_pdf_cairo(annots, filename)) {
+  if (frames) {
+    if (!print_frames_to_pdf_cairo(filename)) {
       set_cursor_busy(FALSE);
       dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
       gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
+    }
+  } else {
+    prefer_legacy = ui.exportpdf_prefer_legacy;
+    if (prefer_legacy) { // try printing via our own PDF parser and generator
+      if (!print_to_pdf(annots, filename))
+        prefer_legacy = FALSE; // if failed, fall back to cairo
+    }
+    if (!prefer_legacy) { // try printing via cairo
+      if (!print_to_pdf_cairo(annots, filename)) {
+        set_cursor_busy(FALSE);
+        dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+          GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
+        gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+      }
     }
   }
   set_cursor_busy(FALSE);

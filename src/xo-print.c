@@ -1795,6 +1795,8 @@ void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, g
 
 #endif
 
+gboolean print_frames_to_pdf_cairo(char *);
+
 gboolean print_to_pdf_cairo(gboolean annots, char *filename)
 {
   cairo_t *cr;
@@ -1817,6 +1819,109 @@ gboolean print_to_pdf_cairo(gboolean annots, char *filename)
   }
   cairo_surface_finish(surface);
   retval = cairo_surface_status(surface);
+  cairo_surface_destroy(surface);
+  return (retval == CAIRO_STATUS_SUCCESS);
+}
+
+gboolean print_frame_to_pdf_cairo(cairo_t *cr, struct Item *frame_item, struct Layer *frame_layer, PangoLayout *layout)
+{
+  double x1 = frame_item->bbox.left, x2 = frame_item->bbox.right;
+  double y1 = frame_item->bbox.top, y2 = frame_item->bbox.bottom;
+
+  guint old_rgba = predef_colors_rgba[COLOR_BLACK];
+  cairo_set_source_rgb(cr, 0, 0, 0);
+  double old_thickness = 0.0;
+
+  for (GList *itemlist = frame_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+    struct Item *item = (struct Item*)itemlist->data;
+    // filter out items which are obviously not in our bounding box
+    //if (item->bbox.right < x1 && item->bbox.left > x2) continue;
+    //if (item->bbox.bottom < y1 && item->bbox.top > y2) continue;
+
+    if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || item->type == ITEM_BOXFILL) {
+      if (item->brush.color_rgba != old_rgba)
+        cairo_set_source_rgba(cr, RGBA_RGB(item->brush.color_rgba),
+                                  RGBA_ALPHA(item->brush.color_rgba));
+      old_rgba = item->brush.color_rgba;
+    }
+    if (item->type == ITEM_STROKE) {
+      if (item->brush.thickness != old_thickness)
+        cairo_set_line_width(cr, item->brush.thickness);
+      double *pt = item->path->coords;
+      if (!item->brush.variable_width) {
+        cairo_move_to(cr, pt[0]-x1, pt[1]-y1);
+        int i;
+        for (i=1, pt+=2; i<item->path->num_points; i++, pt+=2)
+          cairo_line_to(cr, pt[0]-x1, pt[1]-y1);
+        cairo_stroke(cr);
+        old_thickness = item->brush.thickness;
+      } else {
+        for (int i=0; i<item->path->num_points-1; i++, pt+=2) {
+          cairo_move_to(cr, pt[0]-x1, pt[1]-y1);
+          cairo_set_line_width(cr, item->widths[i]);
+          cairo_line_to(cr, pt[2]-x1, pt[3]-y1);
+          cairo_stroke(cr);
+        }
+        old_thickness = 0.0;
+      }
+    }
+    if (item->type == ITEM_TEXT) {
+      PangoFontDescription *font_desc = pango_font_description_from_string(item->font_name);
+      if (item->font_size)
+        pango_font_description_set_absolute_size(font_desc,
+          item->font_size*PANGO_SCALE);
+      pango_layout_set_font_description(layout, font_desc);
+      pango_font_description_free(font_desc);
+      pango_layout_set_text(layout, item->text, -1);
+      cairo_move_to(cr, item->bbox.left-x1, item->bbox.top-y1);
+      pango_cairo_show_layout(cr, layout);
+    }
+    if (item->type == ITEM_IMAGE) {
+      double scalex = (item->bbox.right-item->bbox.left)/gdk_pixbuf_get_width(item->image);
+      double scaley = (item->bbox.bottom-item->bbox.top)/gdk_pixbuf_get_height(item->image);
+      cairo_scale(cr, scalex, scaley);
+      gdk_cairo_set_source_pixbuf(cr,item->image, (item->bbox.left-x1)/scalex, (item->bbox.top-y1)/scaley);
+      cairo_scale(cr, 1/scalex, 1/scaley);
+      cairo_paint(cr);
+      old_rgba = predef_colors_rgba[COLOR_BLACK];
+      cairo_set_source_rgb(cr, 0, 0, 0);
+    }
+    if (item->type == ITEM_BOXFILL) {
+      GdkRectangle rect;
+      rect.x = item->bbox.left-x1;
+      rect.y = item->bbox.top-y1;
+      rect.width = item->bbox.right-item->bbox.left;
+      rect.height = item->bbox.bottom-item->bbox.top;
+      gdk_cairo_rectangle(cr,&rect);
+      cairo_fill(cr);
+    }
+
+  }
+}
+
+gboolean print_frames_to_pdf_cairo(char *filename)
+{
+  cairo_surface_t *surface = cairo_pdf_surface_create(filename, ui.default_page.width, ui.default_page.height);
+  for (GList *list = journal.pages; list!=NULL; list = list->next) {
+    struct Page *pg = (struct Page *)list->data;
+    for (GList *layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
+      struct Layer *l = (struct Layer *)layerlist->data;
+      for (GList *itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
+        struct Item *item = (struct Item*)itemlist->data;
+        if (item->type == ITEM_FRAME) {
+          cairo_pdf_surface_set_size(surface, item->bbox.right-item->bbox.left, item->bbox.bottom-item->bbox.top);
+          cairo_t *cr = cairo_create(surface);
+          PangoLayout *layout = pango_cairo_create_layout(cr);
+          print_frame_to_pdf_cairo(cr, item, l, layout);
+          g_object_unref(layout);
+          cairo_destroy(cr);
+          cairo_surface_show_page(surface);
+        }
+      }
+    }
+  }
+  cairo_surface_finish(surface);
+  cairo_status_t retval = cairo_surface_status(surface);
   cairo_surface_destroy(surface);
   return (retval == CAIRO_STATUS_SUCCESS);
 }

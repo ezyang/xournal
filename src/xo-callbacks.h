@@ -53,6 +53,10 @@ on_filePrintPDFNoAnnot_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_filePrintPDFFrames_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_fileQuit_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 

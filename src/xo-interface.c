@@ -57,6 +57,7 @@ create_winMain (void)
   GtkWidget *filePrint;
   GtkWidget *filePrintPDF;
   GtkWidget *filePrintPDFNoAnnot;
+  GtkWidget *filePrintPDFFrames;
   GtkWidget *separator2;
   GtkWidget *fileQuit;
   GtkWidget *menuEdit;
@@ -489,6 +490,10 @@ create_winMain (void)
   filePrintPDFNoAnnot = gtk_menu_item_new_with_mnemonic (_("Export to PDF (no annotations)"));
   gtk_widget_show (filePrintPDFNoAnnot);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintPDFNoAnnot);
+
+  filePrintPDFFrames = gtk_menu_item_new_with_mnemonic (_("Export frames to PDF"));
+  gtk_widget_show (filePrintPDFFrames);
+  gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintPDFFrames);
 
   separator2 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator2);
@@ -2214,6 +2219,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) filePrintPDFNoAnnot, "activate",
                     G_CALLBACK (on_filePrintPDFNoAnnot_activate),
                     NULL);
+  g_signal_connect ((gpointer) filePrintPDFFrames, "activate",
+                    G_CALLBACK (on_filePrintPDFFrames_activate),
+                    NULL);
   g_signal_connect ((gpointer) fileQuit, "activate",
                     G_CALLBACK (on_fileQuit_activate),
                     NULL);
@@ -2820,6 +2828,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, filePrint, "filePrint");
   GLADE_HOOKUP_OBJECT (winMain, filePrintPDF, "filePrintPDF");
   GLADE_HOOKUP_OBJECT (winMain, filePrintPDFNoAnnot, "filePrintPDFNoAnnot");
+  GLADE_HOOKUP_OBJECT (winMain, filePrintPDFFrames, "filePrintPDFFrames");
   GLADE_HOOKUP_OBJECT (winMain, separator2, "separator2");
   GLADE_HOOKUP_OBJECT (winMain, fileQuit, "fileQuit");
   GLADE_HOOKUP_OBJECT (winMain, menuEdit, "menuEdit");
