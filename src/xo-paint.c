@@ -417,7 +417,7 @@ void start_frame(GdkEvent *event)
     "x1", pt[0], "y1", pt[1],
     "x2", pt[0], "y2", pt[1],
     "fill-color-rgba", 0xffffff00,
-    "outline-color-rgba", 0x000000ff,
+    "outline-color-rgba", 0x00000077,
     "width-units", 1.0,
     NULL);
   update_cursor();
@@ -864,8 +864,20 @@ struct Item *click_should_select(struct Layer *layer, double x, double y)
   struct Item *item, *val;
   
   val = NULL;
+  gdouble resize_margin = RESIZE_MARGIN / ui.zoom;
   for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
+    if (item->type == ITEM_FRAME) {
+        // special logic for selecting frames
+        if ((x<item->bbox.left+resize_margin && x>item->bbox.left-resize_margin && y>=item->bbox.top && y<=item->bbox.bottom) ||
+            (x<item->bbox.right+resize_margin && x>item->bbox.right-resize_margin && y>=item->bbox.top && y<=item->bbox.bottom) ||
+            (y<item->bbox.top+resize_margin && y>item->bbox.top-resize_margin && x>=item->bbox.left && x<=item->bbox.right) ||
+            (y<item->bbox.bottom+resize_margin && y>item->bbox.bottom-resize_margin && x>=item->bbox.left && x<=item->bbox.right)
+            ) {
+            val = item;
+        }
+        continue;
+    }
     if (item->type != ITEM_TEXT && item->type != ITEM_IMAGE && item->type != ITEM_BOXFILL) continue;
     if (x<item->bbox.left || x>item->bbox.right) continue;
     if (y<item->bbox.top || y>item->bbox.bottom) continue;

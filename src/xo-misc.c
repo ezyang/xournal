@@ -716,7 +716,7 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
           "x1", item->bbox.left,  "y1", item->bbox.top,
           "x2", item->bbox.right, "y2", item->bbox.bottom,
           "fill-color-rgba", 0xffffff00,
-          "outline-color-rgba", 0x000000ff,
+          "outline-color-rgba", 0x00000077,
           "width_units", 1.0,
           NULL);
   }
