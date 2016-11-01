@@ -199,7 +199,7 @@ void update_cursor_for_resize(double *pt)
 
 #define SUBDIVIDE_MAXDIST 5.0
 
-void subdivide_cur_path(null)
+void subdivide_cur_path()
 {
   int n, pieces, k;
   double *p;
@@ -383,6 +383,46 @@ void start_boxfill(GdkEvent *event)
 }
 
 void finalize_boxfill(void)
+{
+  // add undo information
+  prepare_new_undo();
+  undo->type = ITEM_BOXFILL;
+  undo->item = ui.cur_item;
+  undo->layer = ui.cur_layer;
+
+  // store the item on top of the layer stack
+  ui.cur_layer->items = g_list_append(ui.cur_layer->items, ui.cur_item);
+  ui.cur_layer->nitems++;
+  ui.cur_item = NULL;
+  ui.cur_item_type = ITEM_NONE;
+
+  update_cursor();
+}
+
+/************** frame *************/
+
+void start_frame(GdkEvent *event)
+{
+  double pt[2];
+  ui.cur_item_type = ITEM_BOXFILL;
+  ui.cur_item = g_new(struct Item, 1);
+  ui.cur_item->type = ITEM_BOXFILL;
+  g_memmove(&(ui.cur_item->brush), ui.cur_brush, sizeof(struct Brush));
+  // get cursor?
+  get_pointer_coords(event, pt);
+  ui.cur_item->bbox.left = ui.cur_item->bbox.right = pt[0];
+  ui.cur_item->bbox.top = ui.cur_item->bbox.bottom = pt[1];
+
+  ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
+    gnome_canvas_rect_get_type(),
+    "x1", pt[0], "y1", pt[1],
+    "x2", pt[0], "y2", pt[1],
+    "fill-color-rgba", ui.cur_item->brush.color_rgba,
+    NULL);
+  update_cursor();
+}
+
+void finalize_frame(void)
 {
   // add undo information
   prepare_new_undo();

@@ -33,6 +33,11 @@ void do_hand(GdkEvent *event);
 void start_boxfill(GdkEvent *event);
 void finalize_boxfill(void);
 
+/* frame functions */
+
+void start_frame(GdkEvent *event);
+void finalize_frame(void);
+
 /* text functions */
 
 #ifdef WIN32

@@ -151,9 +151,10 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 #define TOOL_IMAGE        8
 #define TOOL_BOXFILL      9
 #define TOOL_ANNOT        10
+#define TOOL_FRAME        11
 
 #define NUM_STROKE_TOOLS  3
-#define NUM_TOOLS         11
+#define NUM_TOOLS         12
 #define NUM_BUTTONS       3
 
 #define IS_TOOL_COLORED(t) ((t) == TOOL_PEN         || \
@@ -225,11 +226,13 @@ typedef struct Item {
 #define ITEM_SELECTREGION 25
 #define ITEM_BOXFILL 26
 #define ITEM_DUPLICATE_PAGE 27
+#define ITEM_FRAME 28
 
 #define IS_ITEM_OBJECT(t) ((t) == ITEM_STROKE || \
                            (t) == ITEM_TEXT   || \
                            (t) == ITEM_IMAGE  || \
-                           (t) == ITEM_BOXFILL   )
+                           (t) == ITEM_BOXFILL || \
+                           (t) == ITEM_FRAME )
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -374,8 +377,8 @@ typedef struct UndoErasureData {
 
 typedef struct UndoItem {
   int type;
-  struct Item *item; // for ITEM_STROKE, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB, ITEM_IMAGE, ITEM_BOXFILL
-  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_RECOGNIZER, ITEM_IMAGE, ITEM_BOXFILL
+  struct Item *item; // for ITEM_STROKE, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB, ITEM_IMAGE, ITEM_BOXFILL, ITEM_FRAME
+  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_RECOGNIZER, ITEM_IMAGE, ITEM_BOXFILL, ITEM_FRAME
   struct Layer *layer2; // for ITEM_DELETE_LAYER with val=-1, ITEM_MOVESEL
   struct Page *page;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
   GList *erasurelist; // for ITEM_ERASURE, ITEM_RECOGNIZER

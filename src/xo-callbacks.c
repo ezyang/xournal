@@ -1971,6 +1971,34 @@ on_toolsBoxFill_activate              (GtkMenuItem *menuitem,
 
 
 void
+on_toolsFrame_activate              (GtkMenuItem *menuitem,
+                                        gpointer         user_data)
+{
+  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+    if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
+      return;
+  } else {
+    if (!gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem)))
+      return;
+  }
+
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_FRAME) return;
+
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
+  end_text();
+  reset_selection();
+  ui.toolno[ui.cur_mapping] = TOOL_FRAME;
+  ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_FRAME]);
+  update_mapping_linkings(-1);
+  update_tool_buttons();
+  update_tool_menu();
+  update_color_menu();
+  update_cursor();
+}
+
+
+void
 on_toolsSelectRegion_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2746,6 +2774,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   else if (ui.toolno[mapping] == TOOL_BOXFILL) {
     start_boxfill((GdkEvent *)event);
   }
+  else if (ui.toolno[mapping] == TOOL_FRAME) {
+    start_frame((GdkEvent *)event);
+  }
   return FALSE;
 }
 
@@ -2781,6 +2812,9 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   }
   else if (ui.cur_item_type == ITEM_BOXFILL) {
     finalize_boxfill();
+  }
+  else if (ui.cur_item_type == ITEM_FRAME) {
+    finalize_frame();
   }
   else if (ui.cur_item_type == ITEM_SELECTREGION) {
     finalize_selectregion();
@@ -3016,6 +3050,9 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     else if (ui.cur_item_type == ITEM_BOXFILL) {
       finalize_boxfill();
     }
+    else if (ui.cur_item_type == ITEM_FRAME) {
+      finalize_frame();
+    }
     else if (ui.cur_item_type == ITEM_SELECTREGION) {
       finalize_selectregion();
     }
@@ -3047,6 +3084,13 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
                ui.cur_brush->tool_options == TOOLOPT_ERASER_STROKES);
   }
   else if (ui.cur_item_type == ITEM_BOXFILL) {
+    get_pointer_coords((GdkEvent *)event, pt);
+    ui.cur_item->bbox.right = pt[0];
+    ui.cur_item->bbox.bottom = pt[1];
+    gnome_canvas_item_set(ui.cur_item->canvas_item,
+                               "x2", pt[0], "y2", pt[1], NULL);
+  }
+  else if (ui.cur_item_type == ITEM_FRAME) {
     get_pointer_coords((GdkEvent *)event, pt);
     ui.cur_item->bbox.right = pt[0];
     ui.cur_item->bbox.bottom = pt[1];
@@ -3553,6 +3597,14 @@ on_button2BoxFill_activate             (GtkMenuItem     *menuitem,
 
 
 void
+on_button2Frame_activate             (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_FRAME);
+}
+
+
+void
 on_button2SelectRegion_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3650,6 +3702,14 @@ on_button3BoxFill_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   process_mapping_activate(menuitem, 2, TOOL_BOXFILL);
+}
+
+
+void
+on_button3Frame_activate               (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_FRAME);
 }
 
 
