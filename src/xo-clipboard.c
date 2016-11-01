@@ -128,6 +128,9 @@ void selection_to_clip(void)
       bufsz+= sizeof(int) // type
         + sizeof(struct BBox)
         + sizeof(struct Brush); // brush
+    } else if (item->type == ITEM_FRAME) {
+      bufsz+= sizeof(int) // type
+        + sizeof(struct BBox);
     }
     else bufsz+= sizeof(int); // type
   }
@@ -182,6 +185,9 @@ void selection_to_clip(void)
     if (item->type == ITEM_BOXFILL) {
       g_memmove(p, &item->bbox, sizeof(struct BBox)); p+= sizeof(struct BBox);
       g_memmove(p, &item->brush, sizeof(struct Brush)); p+= sizeof(struct Brush);
+    }
+    if (item->type == ITEM_FRAME) {
+      g_memmove(p, &item->bbox, sizeof(struct BBox)); p+= sizeof(struct BBox);
     }
   }
   
@@ -324,6 +330,14 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
       item->bbox.top += voffset;
       item->bbox.bottom += voffset;
       g_memmove(&item->brush, p, sizeof(struct Brush)); p+= sizeof(struct Brush);
+      make_canvas_item_one(ui.cur_layer->group, item);
+    }
+    if (item->type == ITEM_FRAME) {
+      g_memmove(&item->bbox, p, sizeof(struct BBox)); p+= sizeof(struct BBox);
+      item->bbox.left += hoffset;
+      item->bbox.right += hoffset;
+      item->bbox.top += voffset;
+      item->bbox.bottom += voffset;
       make_canvas_item_one(ui.cur_layer->group, item);
     }
   }

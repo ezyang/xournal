@@ -248,6 +248,9 @@ void clear_redo_stack(void)
     else if (redo->type == ITEM_BOXFILL) {
       g_free(redo->item);
     }
+    else if (redo->type == ITEM_FRAME) {
+      g_free(redo->item);
+    }
     else if (redo->type == ITEM_ERASURE || redo->type == ITEM_RECOGNIZER) {
       for (list = redo->erasurelist; list!=NULL; list=list->next) {
         erasure = (struct UndoErasureData *)list->data;
@@ -329,6 +332,7 @@ void clear_undo_stack(void)
           g_free(erasure->item->image_png);
         }
         if (erasure->item->type == ITEM_BOXFILL) { /* no-op */ }
+        if (erasure->item->type == ITEM_FRAME) { /* no-op */ }
         g_free(erasure->item);
         g_list_free(erasure->replacement_items);
         g_free(erasure);
@@ -420,6 +424,7 @@ void delete_layer(struct Layer *l)
       g_free(item->image_png);
     }
     if (item->type == ITEM_BOXFILL) { /* no-op */ }
+    if (item->type == ITEM_FRAME) { /* no-op */ }
     // don't need to delete the canvas_item, as it's part of the group destroyed below
     g_free(item);
     l->items = g_list_delete_link(l->items, l->items);
@@ -703,6 +708,16 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
           "x1", item->bbox.left,  "y1", item->bbox.top,
           "x2", item->bbox.right, "y2", item->bbox.bottom,
           "fill-color-rgba", item->brush.color_rgba,
+          NULL);
+  }
+  if (item->type == ITEM_FRAME) {
+    item->canvas_item = gnome_canvas_item_new(group,
+          gnome_canvas_rect_get_type(),
+          "x1", item->bbox.left,  "y1", item->bbox.top,
+          "x2", item->bbox.right, "y2", item->bbox.bottom,
+          "fill-color-rgba", 0xffffff00,
+          "outline-color-rgba", 0x000000ff,
+          "width_units", 1.0,
           NULL);
   }
 }
@@ -1069,6 +1084,10 @@ void update_tool_buttons(void)
       gtk_toggle_tool_button_set_active(
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonBoxFill")), TRUE);
       break;
+    case TOOL_FRAME:
+      gtk_toggle_tool_button_set_active(
+        GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFrame")), TRUE);
+      break;
     case TOOL_SELECTREGION:
       gtk_toggle_tool_button_set_active(
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonSelectRegion")), TRUE);
@@ -1128,6 +1147,10 @@ void update_tool_menu(void)
     case TOOL_BOXFILL:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsBoxFill")), TRUE);
+      break;
+    case TOOL_FRAME:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsFrame")), TRUE);
       break;
     case TOOL_SELECTREGION:
       gtk_check_menu_item_set_active(
@@ -1373,6 +1396,10 @@ void update_mappings_menu(void)
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2BoxFill")), TRUE);
       break;
+    case TOOL_FRAME:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Frame")), TRUE);
+      break;
     case TOOL_SELECTREGION:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2SelectRegion")), TRUE);
@@ -1410,6 +1437,10 @@ void update_mappings_menu(void)
     case TOOL_BOXFILL:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3BoxFill")), TRUE);
+      break;
+    case TOOL_FRAME:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Frame")), TRUE);
       break;
     case TOOL_SELECTREGION:
       gtk_check_menu_item_set_active(
@@ -1984,7 +2015,7 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
       for (pt=item->path->coords, i=0; i<item->path->num_points; i++, pt+=2)
         { pt[0] += dx; pt[1] += dy; }
     if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || 
-        item->type == ITEM_TEMP_TEXT || item->type == ITEM_IMAGE || item->type == ITEM_BOXFILL) {
+        item->type == ITEM_TEMP_TEXT || item->type == ITEM_IMAGE || item->type == ITEM_BOXFILL || item->type == ITEM_FRAME) {
       item->bbox.left += dx;
       item->bbox.right += dx;
       item->bbox.top += dy;
@@ -2067,7 +2098,7 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
       item->bbox.left = item->bbox.left*scaling_x + offset_x;
       item->bbox.top = item->bbox.top*scaling_y + offset_y;
     }
-    if (item->type == ITEM_IMAGE || item->type == ITEM_BOXFILL) {
+    if (item->type == ITEM_IMAGE || item->type == ITEM_BOXFILL || item->type == ITEM_FRAME) {
       item->bbox.left = item->bbox.left*scaling_x + offset_x;
       item->bbox.right = item->bbox.right*scaling_x + offset_x;
       item->bbox.top = item->bbox.top*scaling_y + offset_y;

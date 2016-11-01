@@ -135,7 +135,7 @@ void update_cursor(void)
   else if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     ui.cursor = make_hiliter_cursor(ui.cur_brush->color_rgba);
   }
-  else if (ui.cur_item_type == ITEM_SELECTRECT || ui.cur_item_type == ITEM_BOXFILL) {
+  else if (ui.cur_item_type == ITEM_SELECTRECT || ui.cur_item_type == ITEM_BOXFILL || ui.cur_item_type == ITEM_FRAME) {
     ui.cursor = gdk_cursor_new(GDK_TCROSS);
   }
   else if (ui.toolno[ui.cur_mapping] == TOOL_HAND) {
@@ -404,10 +404,9 @@ void finalize_boxfill(void)
 void start_frame(GdkEvent *event)
 {
   double pt[2];
-  ui.cur_item_type = ITEM_BOXFILL;
+  ui.cur_item_type = ITEM_FRAME;
   ui.cur_item = g_new(struct Item, 1);
-  ui.cur_item->type = ITEM_BOXFILL;
-  g_memmove(&(ui.cur_item->brush), ui.cur_brush, sizeof(struct Brush));
+  ui.cur_item->type = ITEM_FRAME;
   // get cursor?
   get_pointer_coords(event, pt);
   ui.cur_item->bbox.left = ui.cur_item->bbox.right = pt[0];
@@ -417,7 +416,9 @@ void start_frame(GdkEvent *event)
     gnome_canvas_rect_get_type(),
     "x1", pt[0], "y1", pt[1],
     "x2", pt[0], "y2", pt[1],
-    "fill-color-rgba", ui.cur_item->brush.color_rgba,
+    "fill-color-rgba", 0xffffff00,
+    "outline-color-rgba", 0x000000ff,
+    "width-units", 1.0,
     NULL);
   update_cursor();
 }
@@ -426,7 +427,7 @@ void finalize_frame(void)
 {
   // add undo information
   prepare_new_undo();
-  undo->type = ITEM_BOXFILL;
+  undo->type = ITEM_FRAME;
   undo->item = ui.cur_item;
   undo->layer = ui.cur_layer;
 
