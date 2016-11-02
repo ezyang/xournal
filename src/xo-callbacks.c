@@ -345,31 +345,32 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
 #endif
 }
 
-static void filePrintPDF(gboolean annots, gboolean frame, GtkMenuItem *menu_item, gpointer user_data);
+static void filePrintPDF(gboolean annots, GtkMenuItem *menu_item, gpointer user_data);
+static void filePrintPDFFrames(GtkMenuItem *menu_item, gpointer user_data);
 
 void
 on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-    filePrintPDF(TRUE, FALSE, menuitem, user_data);
-}
-
-void
-on_filePrintPDFFrames_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-    filePrintPDF(FALSE, TRUE, menuitem, user_data);
+    filePrintPDF(TRUE, menuitem, user_data);
 }
 
 void
 on_filePrintPDFNoAnnot_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-    filePrintPDF(FALSE, FALSE, menuitem, user_data);
+    filePrintPDF(FALSE, menuitem, user_data);
+}
+
+void
+on_filePrintPDFFrames_activate               (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    filePrintPDFFrames(menuitem, user_data);
 }
 
 static void
-filePrintPDF(gboolean annots, gboolean frames, GtkMenuItem *menuitem, gpointer user_data)
+filePrintPDF(gboolean annots, GtkMenuItem *menuitem, gpointer user_data)
 {
 
   GtkWidget *dialog, *warning_dialog;
@@ -430,29 +431,62 @@ filePrintPDF(gboolean annots, gboolean frames, GtkMenuItem *menuitem, gpointer u
 
   set_cursor_busy(TRUE);
 
-  if (frames) {
-    if (!print_frames_to_pdf_cairo(filename)) {
+  prefer_legacy = ui.exportpdf_prefer_legacy;
+  if (prefer_legacy) { // try printing via our own PDF parser and generator
+    if (!print_to_pdf(annots, filename))
+      prefer_legacy = FALSE; // if failed, fall back to cairo
+  }
+  if (!prefer_legacy) { // try printing via cairo
+    if (!print_to_pdf_cairo(annots, filename)) {
       set_cursor_busy(FALSE);
       dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
       gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
-  } else {
-    prefer_legacy = ui.exportpdf_prefer_legacy;
-    if (prefer_legacy) { // try printing via our own PDF parser and generator
-      if (!print_to_pdf(annots, filename))
-        prefer_legacy = FALSE; // if failed, fall back to cairo
-    }
-    if (!prefer_legacy) { // try printing via cairo
-      if (!print_to_pdf_cairo(annots, filename)) {
-        set_cursor_busy(FALSE);
-        dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-          GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
-        gtk_dialog_run(GTK_DIALOG(dialog));
-        gtk_widget_destroy(dialog);
-      }
-    }
+  }
+  set_cursor_busy(FALSE);
+  g_free(filename);
+}
+
+static void
+filePrintPDFFrames(GtkMenuItem *menuitem, gpointer user_data)
+{
+
+  GtkWidget *dialog, *warning_dialog;
+  GtkFileFilter *filt_all, *filt_pdf;
+  char *filename, *in_fn;
+  char stime[30];
+  time_t curtime;
+  gboolean warn, prefer_legacy;
+
+  end_text();
+  dialog = gtk_file_chooser_dialog_new(_("Export frames to PDFs"), GTK_WINDOW (winMain),
+     GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+     GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
+
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+  g_free(in_fn);
+
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+    gtk_widget_destroy(dialog);
+    return;
+  }
+  filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+  gtk_widget_destroy(dialog);
+
+  set_cursor_busy(TRUE);
+
+  if (!print_frames_to_pdfs_cairo(filename)) {
+    set_cursor_busy(FALSE);
+    dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+      GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
   }
   set_cursor_busy(FALSE);
   g_free(filename);

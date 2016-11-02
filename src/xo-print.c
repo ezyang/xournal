@@ -1823,10 +1823,28 @@ gboolean print_to_pdf_cairo(gboolean annots, char *filename)
   return (retval == CAIRO_STATUS_SUCCESS);
 }
 
-gboolean print_frame_to_pdf_cairo(cairo_t *cr, struct Item *frame_item, struct Layer *frame_layer, PangoLayout *layout)
+gboolean print_frame_to_pdf_cairo(char *dirname, int index, struct Item *frame_item, struct Layer *frame_layer)
 {
   double x1 = frame_item->bbox.left, x2 = frame_item->bbox.right;
   double y1 = frame_item->bbox.top, y2 = frame_item->bbox.bottom;
+
+  char *filename = NULL;
+  for (GList *itemlist = frame_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+    struct Item *item = (struct Item*)itemlist->data;
+    if (item->bbox.right < x1 && item->bbox.left > x2) continue;
+    if (item->bbox.bottom < y1 && item->bbox.top > y2) continue;
+    if (item->type == ITEM_TEXT && item->annot) {
+      filename = g_strdup_printf("%s/%s.pdf", dirname, item->text);
+      break;
+    }
+  }
+  if (filename == NULL) {
+    filename = g_strdup_printf("%s/fig%d.pdf", dirname, index);
+  }
+
+  cairo_surface_t *surface = cairo_pdf_surface_create(filename, x2-x1, y2-y1);
+  cairo_t *cr = cairo_create(surface);
+  PangoLayout *layout = pango_cairo_create_layout(cr);
 
   guint old_rgba = predef_colors_rgba[COLOR_BLACK];
   cairo_set_source_rgb(cr, 0, 0, 0);
@@ -1835,8 +1853,8 @@ gboolean print_frame_to_pdf_cairo(cairo_t *cr, struct Item *frame_item, struct L
   for (GList *itemlist = frame_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     struct Item *item = (struct Item*)itemlist->data;
     // filter out items which are obviously not in our bounding box
-    //if (item->bbox.right < x1 && item->bbox.left > x2) continue;
-    //if (item->bbox.bottom < y1 && item->bbox.top > y2) continue;
+    if (item->bbox.right < x1 && item->bbox.left > x2) continue;
+    if (item->bbox.bottom < y1 && item->bbox.top > y2) continue;
 
     if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || item->type == ITEM_BOXFILL) {
       if (item->brush.color_rgba != old_rgba)
@@ -1897,11 +1915,20 @@ gboolean print_frame_to_pdf_cairo(cairo_t *cr, struct Item *frame_item, struct L
     }
 
   }
+
+  g_free(filename);
+  g_object_unref(layout);
+  cairo_destroy(cr);
+  cairo_surface_show_page(surface);
+  cairo_surface_finish(surface);
+  cairo_status_t retval = cairo_surface_status(surface);
+  cairo_surface_destroy(surface);
+  return retval;
 }
 
-gboolean print_frames_to_pdf_cairo(char *filename)
+gboolean print_frames_to_pdfs_cairo(char *dirname)
 {
-  cairo_surface_t *surface = cairo_pdf_surface_create(filename, ui.default_page.width, ui.default_page.height);
+  int i = 0;
   for (GList *list = journal.pages; list!=NULL; list = list->next) {
     struct Page *pg = (struct Page *)list->data;
     for (GList *layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
@@ -1909,19 +1936,11 @@ gboolean print_frames_to_pdf_cairo(char *filename)
       for (GList *itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
         struct Item *item = (struct Item*)itemlist->data;
         if (item->type == ITEM_FRAME) {
-          cairo_pdf_surface_set_size(surface, item->bbox.right-item->bbox.left, item->bbox.bottom-item->bbox.top);
-          cairo_t *cr = cairo_create(surface);
-          PangoLayout *layout = pango_cairo_create_layout(cr);
-          print_frame_to_pdf_cairo(cr, item, l, layout);
-          g_object_unref(layout);
-          cairo_destroy(cr);
-          cairo_surface_show_page(surface);
+          gboolean retval = print_frame_to_pdf_cairo(dirname, i++, item, l);
+          if (retval != CAIRO_STATUS_SUCCESS) return FALSE;
         }
       }
     }
   }
-  cairo_surface_finish(surface);
-  cairo_status_t retval = cairo_surface_status(surface);
-  cairo_surface_destroy(surface);
-  return (retval == CAIRO_STATUS_SUCCESS);
+  return TRUE;
 }
