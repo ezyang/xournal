@@ -1831,8 +1831,8 @@ gboolean print_frame_to_pdf_cairo(char *dirname, int index, struct Item *frame_i
   char *filename = NULL;
   for (GList *itemlist = frame_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     struct Item *item = (struct Item*)itemlist->data;
-    if (item->bbox.right < x1 && item->bbox.left > x2) continue;
-    if (item->bbox.bottom < y1 && item->bbox.top > y2) continue;
+    if (item->bbox.right < x1 || item->bbox.left > x2) continue;
+    if (item->bbox.bottom < y1 || item->bbox.top > y2) continue;
     if (item->type == ITEM_TEXT && item->annot) {
       filename = g_strdup_printf("%s/%s.pdf", dirname, item->text);
       break;
@@ -1853,8 +1853,8 @@ gboolean print_frame_to_pdf_cairo(char *dirname, int index, struct Item *frame_i
   for (GList *itemlist = frame_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     struct Item *item = (struct Item*)itemlist->data;
     // filter out items which are obviously not in our bounding box
-    if (item->bbox.right < x1 && item->bbox.left > x2) continue;
-    if (item->bbox.bottom < y1 && item->bbox.top > y2) continue;
+    if (item->bbox.right < x1 || item->bbox.left > x2) continue;
+    if (item->bbox.bottom < y1 || item->bbox.top > y2) continue;
 
     if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || item->type == ITEM_BOXFILL) {
       if (item->brush.color_rgba != old_rgba)
@@ -1884,15 +1884,17 @@ gboolean print_frame_to_pdf_cairo(char *dirname, int index, struct Item *frame_i
       }
     }
     if (item->type == ITEM_TEXT) {
-      PangoFontDescription *font_desc = pango_font_description_from_string(item->font_name);
-      if (item->font_size)
-        pango_font_description_set_absolute_size(font_desc,
-          item->font_size*PANGO_SCALE);
-      pango_layout_set_font_description(layout, font_desc);
-      pango_font_description_free(font_desc);
-      pango_layout_set_text(layout, item->text, -1);
-      cairo_move_to(cr, item->bbox.left-x1, item->bbox.top-y1);
-      pango_cairo_show_layout(cr, layout);
+      if (!item->annot) {
+        PangoFontDescription *font_desc = pango_font_description_from_string(item->font_name);
+        if (item->font_size)
+          pango_font_description_set_absolute_size(font_desc,
+            item->font_size*PANGO_SCALE);
+        pango_layout_set_font_description(layout, font_desc);
+        pango_font_description_free(font_desc);
+        pango_layout_set_text(layout, item->text, -1);
+        cairo_move_to(cr, item->bbox.left-x1, item->bbox.top-y1);
+        pango_cairo_show_layout(cr, layout);
+      }
     }
     if (item->type == ITEM_IMAGE) {
       double scalex = (item->bbox.right-item->bbox.left)/gdk_pixbuf_get_width(item->image);
@@ -1916,13 +1918,13 @@ gboolean print_frame_to_pdf_cairo(char *dirname, int index, struct Item *frame_i
 
   }
 
-  g_free(filename);
   g_object_unref(layout);
   cairo_destroy(cr);
   cairo_surface_show_page(surface);
   cairo_surface_finish(surface);
   cairo_status_t retval = cairo_surface_status(surface);
   cairo_surface_destroy(surface);
+  g_free(filename);
   return retval;
 }
 
