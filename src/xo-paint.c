@@ -145,7 +145,7 @@ void update_cursor(void)
     ui.cursor = gdk_cursor_new(GDK_XTERM);
   }
   else if (ui.toolno[ui.cur_mapping] == TOOL_ANNOT) {
-    ui.cursor = gdk_cursor_new(GDK_CROSS);
+    ui.cursor = gdk_cursor_new(GDK_XTERM);
   }
   
   gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
